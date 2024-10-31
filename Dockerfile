@@ -24,6 +24,6 @@ RUN composer install --no-dev --verbose > /app/composer_install.log || cat /app/
 RUN chown -R www-data: /app
 
 # Expose port 8080 for Cloud Run
-EXPOSE 8080
+EXPOSE 8000
 
 CMD sh /app/docker/startup.sh

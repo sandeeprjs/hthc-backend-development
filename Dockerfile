@@ -23,11 +23,9 @@ RUN composer install --no-dev --verbose > /app/composer_install.log || cat /app/
 # Set ownership for the app directory
 RUN chown -R www-data: /app
 
-# Configure php-fpm to listen on port 8000
-RUN sed -i 's|listen = 127.0.0.1:9000|listen = 127.0.0.1:8000|' /usr/local/etc/php-fpm.d/www.conf
-
-# Expose port 8000 for Cloud Run
+# Expose port 8080 for Cloud Run
 EXPOSE 8000
 
-# Start both php-fpm and nginx services
-CMD ["sh", "-c", "php-fpm & nginx -g 'daemon off;'"]
+CMD ["nginx", "-g", "daemon off;"]
+
+

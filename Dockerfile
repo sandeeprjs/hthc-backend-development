@@ -6,7 +6,7 @@ RUN mkdir -p /run/nginx
 
 COPY docker/nginx.conf /etc/nginx/nginx.conf
 
-WORKDIR /app  # Set the working directory to /app
+WORKDIR /app
 
 COPY . /app
 

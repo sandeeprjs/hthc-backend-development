@@ -2,7 +2,7 @@ FROM php:8.1-fpm-alpine
 
 # Install essential packages and PHP extensions
 RUN apk add --no-cache nginx wget git zip unzip \
-    && docker-php-ext-install pdo pdo_mysql opcache json
+    && docker-php-ext-install pdo pdo_mysql opcache
 
 # Create required directories and copy configuration
 RUN mkdir -p /run/nginx

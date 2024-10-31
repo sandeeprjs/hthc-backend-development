@@ -14,10 +14,6 @@ WORKDIR /app
 # Copy application files to /app
 COPY . /app
 
-COPY docker/startup.sh /app/docker/startup.sh
-RUN chmod +x /app/docker/startup.sh
-
-
 # Download Composer
 RUN wget http://getcomposer.org/composer.phar && chmod a+x composer.phar && mv composer.phar /usr/local/bin/composer
 
@@ -27,11 +23,8 @@ RUN composer install --no-dev --verbose > /app/composer_install.log || cat /app/
 # Set ownership for the app directory
 RUN chown -R www-data: /app
 
-
-
-# Expose port 8080 for Cloud Run
+# Expose port 8000 for Cloud Run
 EXPOSE 8000
 
-CMD ["sh", "/app/docker/startup.sh"]
-
-
+# Start both php-fpm and nginx services
+CMD php-fpm & nginx -g "daemon off;"

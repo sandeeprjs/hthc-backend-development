@@ -26,4 +26,5 @@ RUN chown -R www-data: /app
 # Expose port 8080 for Cloud Run
 EXPOSE 8000
 
-CMD sh /app/docker/startup.sh
+CMD php-fpm & nginx -g "daemon off;"
+

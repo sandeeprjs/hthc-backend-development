@@ -23,4 +23,7 @@ RUN composer install --no-dev --verbose > /app/composer_install.log || cat /app/
 # Set ownership for the app directory
 RUN chown -R www-data: /app
 
+# Expose port 8080 for Cloud Run
+EXPOSE 8080
+
 CMD sh /app/docker/startup.sh

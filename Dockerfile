@@ -12,6 +12,7 @@ RUN apt-get update && apt-get install -y \
     libfreetype6-dev \
     locales \
     zip \
+    libzip-dev \
     jpegoptim optipng pngquant gifsicle \
     vim \
     unzip \
@@ -23,14 +24,14 @@ RUN apt-get update && apt-get install -y \
 # Clear cache
 RUN apt-get clean && rm -rf /var/lib/apt/lists/*
 
-# Install PHP extensions, including gd
+# Install PHP extensions, including gd and zip
 RUN docker-php-ext-configure gd --with-freetype --with-jpeg \
-    && docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath gd
+    && docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath gd zip
 
 # Install Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
-# Copy all application files to the working directory
+# Copy application files
 COPY . /var/www/html
 
 # Set permissions for /var/www/html

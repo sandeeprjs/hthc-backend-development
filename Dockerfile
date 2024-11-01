@@ -1,16 +1,20 @@
-FROM --platform=linux/amd64 laravelsail/php82-composer
+# Use a PHP 8.2 FPM image with Alpine Linux
+FROM php:8.2-fpm-alpine
 
-# Set the working directory (assuming composer.json is in the root)
-WORKDIR .
+# Set the working directory
+WORKDIR /app
 
-# Copy the application code
-COPY . .
+# Copy the composer.json and composer.lock files
+COPY composer.json composer.lock ./
 
-# Install PHP dependencies
+# Install dependencies
 RUN composer install --no-dev --optimize-autoloader
 
-# Expose port 8080
+# Copy the rest of the application code
+COPY . .
+
+# Expose the port
 EXPOSE 8080
 
-# Start the application
+# Start the development server
 CMD ["php", "artisan", "serve", "--host=0.0.0.0", "--port=8080"]

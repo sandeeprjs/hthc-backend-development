@@ -1,4 +1,3 @@
-# Use the official PHP image as the base image
 FROM php:8.0-fpm
 
 # Set working directory
@@ -32,14 +31,11 @@ COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 # Copy existing application directory contents
 COPY . /var/www/html
 
-# Copy existing application directory permissions
-RUN chown -R www-data:www-data /var/www/html
-
-# Configure Nginx
-COPY ./nginx.conf /etc/nginx/nginx.conf
+# Copy Nginx configuration file
+COPY nginx.conf /etc/nginx/nginx.conf
 
 # Expose port 8080
 EXPOSE 8080
 
 # Start Nginx and PHP-FPM
-CMD ["sh", "-c", "php-fpm -D && nginx -g 'daemon off;'"]
+CMD service nginx start && php-fpm

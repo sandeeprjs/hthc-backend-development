@@ -1,41 +1,52 @@
-# Base image with PHP 8.0 and extensions needed for Laravel
+# Stage 1: Build Stage
+FROM composer:2 AS builder
+
+WORKDIR /var/www
+
+# Copy composer files
+COPY composer.json composer.lock ./
+
+# Install dependencies (no dev dependencies)
+RUN composer install --no-dev --no-scripts --no-autoloader --prefer-dist
+
+# Copy the rest of the application files
+COPY . .
+
+# Generate autoload files
+RUN composer dump-autoload --optimize --no-dev --classmap-authoritative
+
+# Stage 2: Production Stage
 FROM php:8.0-fpm
-
-# Install Nginx
-RUN apt-get update && apt-get install -y nginx
-
-# Install PHP extensions for Laravel
-RUN apt-get install -y \
-    libpng-dev \
-    libjpeg-dev \
-    libfreetype6-dev \
-    zip \
-    unzip \
-    curl \
-    git \
-    && docker-php-ext-install pdo pdo_mysql
-
-# Install Composer
-COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
 # Set working directory
 WORKDIR /var/www
 
-# Copy application files
-COPY . .
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    nginx \
+    libpq-dev \
+    libzip-dev \
+    unzip \
+    git \
+    curl \
+    libonig-dev \
+    libpng-dev \
+    libjpeg62-turbo-dev \
+    libfreetype6-dev \
+    && docker-php-ext-install pdo_mysql mbstring zip exif pcntl bcmath gd
 
-# Install dependencies
-RUN composer install --optimize-autoloader --no-dev
+# Copy the application from the builder stage
+COPY --from=builder /var/www /var/www
 
-# Set permissions for Laravel storage and cache
+# Copy nginx configuration
+COPY nginx.conf /etc/nginx/nginx.conf
+
+# Set permissions
 RUN chown -R www-data:www-data /var/www \
     && chmod -R 755 /var/www/storage
 
-# Copy Nginx configuration file
-COPY nginx.conf /etc/nginx/nginx.conf
-
-# Expose port 8080 for Cloud Run
+# Expose port 8080
 EXPOSE 8080
 
-# Start both Nginx and PHP-FPM services
+# Start PHP-FPM and Nginx
 CMD ["sh", "-c", "php-fpm & nginx -g 'daemon off;'"]

@@ -1,3 +1,4 @@
+# Use PHP 8.2 with FPM
 FROM php:8.2-fpm
 
 # Set working directory
@@ -43,3 +44,6 @@ EXPOSE 8080
 
 # Start Nginx and PHP-FPM
 CMD php-fpm -D && nginx -g "daemon off;"
+
+# Create a basic index.php for testing
+RUN echo "<?php phpinfo(); ?>" > /var/www/html/index.php

@@ -1,35 +1,10 @@
-# Use PHP 8.2 FPM as the base image
-FROM php:8.2-fpm
+FROM --platform=linux/amd64 laravelsail/php82-composer
 
-# Install system dependencies
-RUN apt-get update -y && apt-get install -y \
-    build-essential \
-    autoconf \
-    pkg-config \
-    libssl-dev \
-    libonig-dev \
-    libzip-dev \
-    libpq-dev \
-    libjpeg-dev \
-    libpng-dev \
-    libfreetype6-dev \
-    unzip \
-    git \
-    && rm -rf /var/lib/apt/lists/*
-
-# Install Composer
-RUN curl -sS https://getcomposer.org/installer | php \
-    -- --install-dir=/usr/local/bin --filename=composer
-
-# Install PHP extensions
-RUN docker-php-ext-configure gd --with-freetype --with-jpeg && \
-    docker-php-ext-install pdo pdo_mysql mbstring zip gd
-
-# Set the working directory
-WORKDIR /app
+# Set the working directory (assuming composer.json is in the root)
+WORKDIR .
 
 # Copy the application code
-COPY . /app
+COPY . .
 
 # Install PHP dependencies
 RUN composer install --no-dev --optimize-autoloader
@@ -37,5 +12,5 @@ RUN composer install --no-dev --optimize-autoloader
 # Expose port 8080
 EXPOSE 8080
 
-# Start the application using the PORT environment variable
-CMD ["php-fpm"]
+# Start the application
+CMD ["php", "artisan", "serve", "--host=0.0.0.0", "--port=8080"]

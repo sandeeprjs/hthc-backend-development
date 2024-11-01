@@ -1,36 +1,41 @@
-FROM php:8.1-fpm-alpine
+# Use PHP 8.2 FPM as the base image
+FROM php:8.2-fpm
 
-# Install dependencies
-RUN apk add --no-cache nginx wget gettext
-
-# Create necessary directories
-RUN mkdir -p /run/nginx
-
-# Set working directory
-WORKDIR /app
-
-# Copy composer files first
-COPY composer.json composer.lock ./
+# Install system dependencies
+RUN apt-get update -y && apt-get install -y \
+    build-essential \
+    autoconf \
+    pkg-config \
+    libssl-dev \
+    libonig-dev \
+    libzip-dev \
+    libpq-dev \
+    libjpeg-dev \
+    libpng-dev \
+    libfreetype6-dev \
+    unzip \
+    git \
+    && rm -rf /var/lib/apt/lists/*
 
 # Install Composer
-RUN wget http://getcomposer.org/composer.phar \
-    && chmod a+x composer.phar \
-    && mv composer.phar /usr/local/bin/composer
+RUN curl -sS https://getcomposer.org/installer | php \
+    -- --install-dir=/usr/local/bin --filename=composer
 
-# Install PHP dependencies
-RUN composer install --no-dev
+# Install PHP extensions
+RUN docker-php-ext-configure gd --with-freetype --with-jpeg && \
+    docker-php-ext-install pdo pdo_mysql mbstring zip gd
 
-# Copy the rest of the application code
+# Set the working directory
+WORKDIR /app
+
+# Copy the application code
 COPY . /app
 
-# Set permissions
-RUN chown -R www-data:www-data /app
+# Install PHP dependencies
+RUN composer install --no-dev --optimize-autoloader
 
-# Copy Nginx configuration template
-COPY docker/nginx.conf.template /etc/nginx/nginx.conf.template
-
-# Expose the port (optional, for documentation purposes)
+# Expose port 8080
 EXPOSE 8080
 
-# Start the application
-CMD ["sh", "/app/docker/startup.sh"]
+# Start the application using the PORT environment variable
+CMD ["php-fpm"]

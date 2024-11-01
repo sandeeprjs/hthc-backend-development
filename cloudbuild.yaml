@@ -1,0 +1,11 @@
+steps:
+  - name: 'gcr.io/cloud-builders/docker'
+    args: [
+      'build',
+      '--platform=linux/amd64',
+      '-t',
+      'gcr.io/cosmic-tensor-429819-q0/hthc-web:latest',
+      '.'
+    ]
+images:
+  - 'gcr.io/cosmic-tensor-429819-q0/hthc-web:latest'

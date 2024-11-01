@@ -9,8 +9,8 @@ RUN mkdir -p /run/nginx
 # Set working directory
 WORKDIR /app
 
-# Copy application code
-COPY . /app
+# Copy composer files first
+COPY composer.json composer.lock ./
 
 # Install Composer
 RUN wget http://getcomposer.org/composer.phar \
@@ -19,6 +19,9 @@ RUN wget http://getcomposer.org/composer.phar \
 
 # Install PHP dependencies
 RUN composer install --no-dev
+
+# Copy the rest of the application code
+COPY . /app
 
 # Set permissions
 RUN chown -R www-data:www-data /app

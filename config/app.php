@@ -52,7 +52,7 @@ return [
     |
     */
 
-    'url' => env('APP_URL', 'http://localhost'),
+    'url' => env('APP_URL', 'https://hthc-web-986807843607.asia-south1.run.app'),
 
     'asset_url' => env('ASSET_URL', null),
 

@@ -4,7 +4,7 @@ FROM composer:2 AS builder
 WORKDIR /var/www
 
 # Copy composer files
-COPY composer.json composer.lock ./
+COPY ./composer.json ./composer.lock ./
 
 # Install dependencies (no dev dependencies)
 RUN composer install --no-dev --no-scripts --no-autoloader --prefer-dist
@@ -39,11 +39,12 @@ RUN apt-get update && apt-get install -y \
 COPY --from=builder /var/www /var/www
 
 # Copy nginx configuration
-COPY nginx.conf /etc/nginx/nginx.conf
+COPY ./nginx.conf /etc/nginx/nginx.conf
 
 # Set permissions
 RUN chown -R www-data:www-data /var/www \
-    && chmod -R 755 /var/www/storage
+    && chmod -R 755 /var/www/storage \
+    && chmod -R 755 /var/www/bootstrap/cache
 
 # Expose port 8080
 EXPOSE 8080

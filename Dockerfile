@@ -34,14 +34,10 @@ COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 # Copy application files
 COPY . /var/www/html
 
-# Clear any existing storage cache and set permissions
-RUN rm -rf /var/www/html/storage/framework/{sessions,views,cache}/* \
-    && mkdir -p /var/www/html/storage/framework/{sessions,views,cache} \
-    && chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache \
-    && chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
-
-# Set permissions for /var/www/html
-RUN chown -R www-data:www-data /var/www/html
+# Ensure storage and cache directories exist and set permissions
+RUN mkdir -p storage/framework/sessions storage/framework/views storage/framework/cache bootstrap/cache \
+    && chown -R www-data:www-data storage bootstrap/cache \
+    && chmod -R 775 storage bootstrap/cache
 
 # Copy Nginx configuration file
 COPY nginx.conf /etc/nginx/nginx.conf
@@ -52,8 +48,11 @@ RUN composer install --optimize-autoloader --no-dev
 # Generate application key
 RUN php artisan key:generate
 
+# Clear and cache configurations
+RUN php artisan config:clear && php artisan config:cache
+
 # Expose port 8080
 EXPOSE 8080
 
 # Start Nginx and PHP-FPM
-CMD php-fpm -D && nginx -g "daemon off;"
+CMD php-fpm & nginx -g "daemon off;"

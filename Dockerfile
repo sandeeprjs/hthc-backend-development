@@ -38,4 +38,4 @@ COPY nginx.conf /etc/nginx/nginx.conf
 EXPOSE 8080
 
 # Start Nginx and PHP-FPM
-CMD ["php-fpm", "-D", "&&", "nginx", "-g", "daemon off;"]
+CMD php-fpm -D && nginx -g "daemon off;"

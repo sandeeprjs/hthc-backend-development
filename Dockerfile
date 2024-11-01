@@ -1,36 +1,62 @@
-# Stage 1: Build Stage
-FROM composer:2 AS build
-
-# Set working directory
-WORKDIR /app
-
-# Copy composer files and install dependencies
-COPY composer.json composer.lock ./
-RUN composer install --no-dev --no-interaction --prefer-dist --optimize-autoloader
-
-# Copy the rest of the application code
-COPY . .
-
-# Stage 2: Production Stage
-FROM php:8.2-apache
+# Stage 1: Builder Stage
+FROM php:8.2-fpm AS builder
 
 # Install system dependencies and PHP extensions
-RUN apt-get update -y && \
-    apt-get install -y --no-install-recommends \
-        libzip-dev \
-        libpng-dev \
-        libjpeg-dev \
-        libfreetype6-dev \
-        libonig-dev \
-        zip \
-        unzip \
-        git \
-        curl && \
-    docker-php-ext-configure gd --with-freetype --with-jpeg && \
-    docker-php-ext-install \
-        pdo \
+RUN apt-get update && apt-get install -y \
+    libzip-dev \
+    libpng-dev \
+    libjpeg-dev \
+    libfreetype6-dev \
+    zip \
+    unzip \
+    git \
+    curl \
+    && docker-php-ext-configure gd --with-freetype --with-jpeg \
+    && docker-php-ext-install -j$(nproc) \
+        gd \
+        zip
+
+# Install Composer
+RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
+
+# Set working directory
+WORKDIR /var/www
+
+# Copy the application code
+COPY . .
+
+# Install dependencies without dev dependencies
+RUN composer install --no-dev --prefer-dist --no-interaction --optimize-autoloader
+
+# Create necessary directories and set permissions
+RUN mkdir -p \
+    storage/framework/cache \
+    storage/framework/sessions \
+    storage/framework/views \
+    storage/logs \
+    && chown -R www-data:www-data storage \
+    && chmod -R 775 storage \
+    && chown -R www-data:www-data bootstrap/cache \
+    && chmod -R 775 bootstrap/cache
+
+# Stage 2: Production Stage
+FROM php:8.2-fpm
+
+# Install system dependencies and PHP extensions
+RUN apt-get update && apt-get install -y \
+    libzip-dev \
+    nginx \
+    libpq-dev \
+    unzip \
+    git \
+    curl \
+    libonig-dev \
+    libpng-dev \
+    libjpeg-dev \
+    libfreetype6-dev \
+    && docker-php-ext-configure gd --with-freetype --with-jpeg \
+    && docker-php-ext-install -j$(nproc) \
         pdo_mysql \
-        mysqli \
         mbstring \
         zip \
         exif \
@@ -38,27 +64,17 @@ RUN apt-get update -y && \
         bcmath \
         gd
 
-# Copy the custom Apache configuration
-COPY docker/000-default.conf /etc/apache2/sites-available/000-default.conf
-
-# Update Apache ports configuration to listen on port 8080
-RUN sed -i 's/Listen 80/Listen 8080/' /etc/apache2/ports.conf
-
-# Enable Apache modules
-RUN a2enmod rewrite
-
 # Set working directory
 WORKDIR /var/www
 
-# Copy the application from the build stage
-COPY --from=build /app /var/www
+# Copy the application from the builder stage
+COPY --from=builder /var/www /var/www
 
-# Set permissions for Laravel
-RUN chown -R www-data:www-data storage bootstrap/cache && \
-    chmod -R 775 storage bootstrap/cache
+# Copy nginx configuration
+COPY nginx.conf /etc/nginx/nginx.conf
 
 # Expose port 8080
 EXPOSE 8080
 
-# Start Apache in the foreground
-CMD ["apache2-foreground"]
+# Start PHP-FPM and Nginx
+CMD ["sh", "-c", "php-fpm & nginx -g 'daemon off;'"]

@@ -1,9 +1,10 @@
 #!/bin/sh
 
-sed -i "s,LISTEN_PORT,$PORT,g" /etc/nginx/nginx.conf
+# Substitute PORT in Nginx config
+envsubst '${PORT}' < /etc/nginx/nginx.conf.template > /etc/nginx/nginx.conf
 
-php-fpm -D
+# Start PHP-FPM
+php-fpm
 
-# while ! nc -w 1 -z 127.0.0.1 9000; do sleep 0.1; done;
-
-nginx
+# Start Nginx in the foreground
+nginx -g 'daemon off;'

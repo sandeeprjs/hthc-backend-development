@@ -1,19 +1,33 @@
 FROM php:8.1-fpm-alpine
 
-RUN apk add --no-cache nginx wget
+# Install dependencies
+RUN apk add --no-cache nginx wget gettext
 
+# Create necessary directories
 RUN mkdir -p /run/nginx
 
-COPY docker/nginx.conf /etc/nginx/nginx.conf
+# Set working directory
+WORKDIR /app
 
-RUN mkdir -p /app
+# Copy application code
 COPY . /app
-COPY ./src /app
 
-RUN sh -c "wget http://getcomposer.org/composer.phar && chmod a+x composer.phar && mv composer.phar /usr/local/bin/composer"
-RUN cd /app && \
-    /usr/local/bin/composer install --no-dev
+# Install Composer
+RUN wget http://getcomposer.org/composer.phar \
+    && chmod a+x composer.phar \
+    && mv composer.phar /usr/local/bin/composer
 
-RUN chown -R www-data: /app
+# Install PHP dependencies
+RUN composer install --no-dev
 
-CMD sh /app/docker/startup.sh
+# Set permissions
+RUN chown -R www-data:www-data /app
+
+# Copy Nginx configuration template
+COPY docker/nginx.conf.template /etc/nginx/nginx.conf.template
+
+# Expose the port (optional, for documentation purposes)
+EXPOSE 8080
+
+# Start the application
+CMD ["sh", "/app/docker/startup.sh"]

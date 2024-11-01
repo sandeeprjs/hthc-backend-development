@@ -34,10 +34,11 @@ COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 # Copy application files
 COPY . /var/www/html
 
-# Ensure storage directories exist and have proper permissions
-RUN mkdir -p /var/www/html/storage/framework/{sessions,views,cache} \
-    && chown -R www-data:www-data /var/www/html/storage \
-    && chmod -R 775 /var/www/html/storage
+# Clear any existing storage cache and set permissions
+RUN rm -rf /var/www/html/storage/framework/{sessions,views,cache}/* \
+    && mkdir -p /var/www/html/storage/framework/{sessions,views,cache} \
+    && chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache \
+    && chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
 
 # Set permissions for /var/www/html
 RUN chown -R www-data:www-data /var/www/html

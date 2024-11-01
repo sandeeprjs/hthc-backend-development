@@ -1,18 +1,16 @@
-<?php
-
 namespace App\Http\Middleware;
 
-use Fideloper\Proxy\TrustProxies as Middleware;
 use Illuminate\Http\Request;
+use Fideloper\Proxy\TrustProxies as Middleware;
 
 class TrustProxies extends Middleware
 {
     /**
      * The trusted proxies for this application.
      *
-     * @var array|string
+     * @var array|string|null
      */
-    protected $proxies;
+    protected $proxies = '*';  // Trust all proxies
 
     /**
      * The headers that should be used to detect proxies.

@@ -32,6 +32,9 @@ COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 # Copy existing application directory contents
 COPY . /var/www/html
 
+# Set permissions for /var/www/html
+RUN chown -R www-data:www-data /var/www/html
+
 # Copy Nginx configuration file
 COPY nginx.conf /etc/nginx/nginx.conf
 

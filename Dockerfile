@@ -1,31 +1,41 @@
-FROM php:8.1-fpm-alpine
+# Base image with PHP 8.0 and extensions needed for Laravel
+FROM php:8.0-fpm
 
-# Install essential packages and PHP extensions
-RUN apk add --no-cache nginx wget git zip unzip \
-    && docker-php-ext-install pdo pdo_mysql opcache
+# Install Nginx
+RUN apt-get update && apt-get install -y nginx
 
-# Create required directories and copy configuration
-RUN mkdir -p /run/nginx
-COPY docker/nginx.conf /etc/nginx/nginx.conf
+# Install PHP extensions for Laravel
+RUN apt-get install -y \
+    libpng-dev \
+    libjpeg-dev \
+    libfreetype6-dev \
+    zip \
+    unzip \
+    curl \
+    git \
+    && docker-php-ext-install pdo pdo_mysql
+
+# Install Composer
+COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
 # Set working directory
-WORKDIR /app
+WORKDIR /var/www
 
-# Copy application files to /app
-COPY . /app
+# Copy application files
+COPY . .
 
-# Download Composer
-RUN wget http://getcomposer.org/composer.phar && chmod a+x composer.phar && mv composer.phar /usr/local/bin/composer
+# Install dependencies
+RUN composer install --optimize-autoloader --no-dev
 
-# Run Composer and save log for error inspection
-RUN composer install --no-dev --verbose > /app/composer_install.log || cat /app/composer_install.log
+# Set permissions for Laravel storage and cache
+RUN chown -R www-data:www-data /var/www \
+    && chmod -R 755 /var/www/storage
 
-# Set ownership for the app directory
-RUN chown -R www-data: /app
+# Copy Nginx configuration file
+COPY nginx.conf /etc/nginx/nginx.conf
 
 # Expose port 8080 for Cloud Run
-EXPOSE 8000
+EXPOSE 8080
 
-CMD ["nginx", "-g", "daemon off;"]
-
-
+# Start both Nginx and PHP-FPM services
+CMD ["sh", "-c", "php-fpm & nginx -g 'daemon off;'"]

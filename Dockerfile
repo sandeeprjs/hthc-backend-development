@@ -1,6 +1,7 @@
 # Use PHP 8.2 with FPM as the base image
 FROM php:8.2-fpm
 
+
 # Install system dependencies and Redis
 RUN apt-get update && apt-get install -y \
     build-essential \

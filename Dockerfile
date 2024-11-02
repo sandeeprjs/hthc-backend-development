@@ -18,7 +18,6 @@ RUN apt-get update && apt-get install -y \
     nginx \
     libonig-dev \
     supervisor \
-    redis-server \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # Install PHP extensions, including gd, zip, and redis

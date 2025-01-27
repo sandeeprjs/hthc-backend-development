@@ -58,7 +58,6 @@ return [
             'prefix_indexes' => true,
             'strict' => false,
             'options' => extension_loaded('pdo_mysql') ? array_filter([
-                PDO::MYSQL_ATTR_SSL_CA => env('MYSQL_SSL_CA_PATH', base_path('ca.pem')),
                 PDO::MYSQL_ATTR_SSL_VERIFY_SERVER_CERT => env('MYSQL_SSL_VERIFY', false),
             ]) : [],
             ],

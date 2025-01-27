@@ -67,9 +67,9 @@
                                 @endif
                             </div>
                         </div>
-                        <div class="form-group">
-                            <button type="button" onclick="location.href='https://hthc.co.in/HTHC_v1.0.2.apk';" class="btn btn-link">Download APK</button>
-                        </div>
+{{--                        <div class="form-group">--}}
+{{--                            <button type="button" onclick="location.href='https://hthc.co.in/HTHC_v1.0.2.apk';" class="btn btn-link">Download APK</button>--}}
+{{--                        </div>--}}
                     </form>
                 </div>
             </div>
@@ -79,7 +79,7 @@
 
                 <!-- Copyright -->
                 <div class="footer-copyright text-center py-3">
-                    <a href="https://www.netiapps.com/" target="_blank">Developed & Maintained by Netiapps</a>
+                    <a href="https://www.netiapps.com/" target="_blank">Developed & Maintained by Aviskara Solutions</a>
                 </div>
                 <!-- Copyright -->
 

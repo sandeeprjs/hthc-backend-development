@@ -1,4 +1,4 @@
-# Changes to Dockerfile
+# Dockerfile
 FROM php:8.3-fpm-alpine
 
 # Install system dependencies
@@ -15,7 +15,6 @@ RUN apk update && apk add --no-cache \
     libsodium-dev \
     curl-dev \
     gettext \
-    # Add required build tools
     $PHPIZE_DEPS \
     && docker-php-ext-configure gd --with-freetype --with-jpeg \
     && docker-php-ext-configure zip \
@@ -27,7 +26,6 @@ RUN apk update && apk add --no-cache \
         curl \
         opcache \
         pcntl \
-    # Cleanup build dependencies
     && apk del $PHPIZE_DEPS
 
 # Install Redis extension
@@ -63,7 +61,8 @@ RUN mkdir -p /app/storage/framework/{sessions,views,cache} \
     && chmod -R 775 /app/storage /app/bootstrap/cache \
     && chown -R www-data:www-data /app/storage /app/bootstrap/cache
 
-# Startup script
-COPY --chmod=0755 docker/startup.sh /app/docker/startup.sh
+# Copy and set startup script permissions
+COPY docker/startup.sh /app/docker/startup.sh
+RUN chmod +x /app/docker/startup.sh
 
 CMD ["/app/docker/startup.sh"]

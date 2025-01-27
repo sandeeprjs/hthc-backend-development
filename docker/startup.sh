@@ -1,9 +1,8 @@
 #!/bin/sh
 
-sed -i "s,LISTEN_PORT,$PORT,g" /etc/nginx/nginx.conf
+# Wait for Redis to be available
+timeout 30 sh -c 'until nc -z $(echo $REDIS_URL | cut -d "@" -f2 | cut -d ":" -f1) $(echo $REDIS_URL | cut -d ":" -f3); do sleep 1; done'
 
+# Start services
 php-fpm -D
-
-# while ! nc -w 1 -z 127.0.0.1 9000; do sleep 0.1; done;
-
-nginx
+nginx -g "daemon off;"

@@ -1,34 +1,61 @@
-FROM php:8.2-fpm-alpine
+# Use PHP 8.3 with Alpine Linux
+FROM php:8.3-fpm-alpine
 
 # Install system dependencies and PHP extensions
-RUN apk add --no-cache \
+RUN apk update && apk add --no-cache \
     nginx \
     wget \
+    git \
+    unzip \
+    # GD dependencies
     libpng-dev \
     libjpeg-turbo-dev \
     freetype-dev \
+    # Zip extension dependencies
+    libzip-dev \
+    zlib-dev \
+    # Other dependencies
     libsodium-dev \
-    # Configure and install GD extension
+    curl-dev \
+    # Configure and install extensions
     && docker-php-ext-configure gd --with-freetype --with-jpeg \
-    && docker-php-ext-install -j$(nproc) gd \
-    # Install Sodium extension
-    && docker-php-ext-install sodium
+    && docker-php-ext-configure zip \
+    && docker-php-ext-install -j$(nproc) \
+        gd \
+        zip \
+        sodium \
+        pdo_mysql \
+        curl \
+        opcache \
+        pcntl \
+    # Cleanup
+    && rm -rf /var/cache/apk/* /tmp/*
 
+RUN apk add --no-cache \
+    # Add Redis-related dependencies
+    redis \
+    hiredis-dev \
+    && docker-php-ext-install redis \
+
+# Configure nginx
 RUN mkdir -p /run/nginx
-
 COPY docker/nginx.conf /etc/nginx/nginx.conf
 
-RUN mkdir -p /app
-COPY . /app
+# Set working directory
+WORKDIR /app
 
 # Install Composer
 RUN wget -O /usr/local/bin/composer https://getcomposer.org/composer.phar \
     && chmod +x /usr/local/bin/composer
 
-# Install PHP dependencies
-RUN cd /app && \
-    /usr/local/bin/composer install --no-dev
+# Copy application files
+COPY . .
 
-RUN chown -R www-data: /app
+# Install dependencies
+RUN composer install --no-dev --no-interaction --optimize-autoloader
 
-CMD sh /app/docker/startup.sh
+# Fix permissions
+RUN chown -R www-data:www-data /app
+
+# Startup command
+CMD ["sh", "/app/docker/startup.sh"]

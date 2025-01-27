@@ -1,27 +1,63 @@
-FROM php:8.4-fpm-alpine
-
-RUN apk add --no-cache \
-nginx \
-postgresql-dev \
-libpng-dev \
-libjpeg-turbo-dev \
-freetype-dev \
-libzip-dev \
-&& docker-php-ext-configure gd --with-freetype --with-jpeg \
-&& docker-php-ext-install -j$(nproc) gd pdo pdo_pgsql zip
-
-COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
-
-WORKDIR /app
-COPY . .
-RUN composer install --no-dev --optimize-autoloader
-
-COPY nginx.conf /etc/nginx/nginx.conf
-COPY startup.sh /startup.sh
-RUN chmod +x /startup.sh
-
-RUN chown -R www-data:www-data /app
-
-EXPOSE 8080
-
-CMD ["/startup.sh"]
+{
+    "name": "laravel/laravel1",
+    "type": "project",
+    "description": "The Laravel Framework.",
+    "keywords": ["framework", "laravel"],
+    "license": "MIT",
+    "require": {
+        "php": "^8.3.6",
+        "consoletvs/charts": "^6.0",
+        "guzzlehttp/guzzle": "^7.8",
+        "laravel/framework": "^10.0",
+        "laravel/passport": "^11.0",
+        "laravel/tinker": "^2.8",
+        "laravel/ui": "^4.0",
+        "maatwebsite/excel": "^3.1",
+        "milon/barcode": "^11.0",
+        "nesbot/carbon": "^2.67",
+        "predis/predis": "^2.3"
+    },
+    "require-dev": {
+        "fakerphp/faker": "^1.23",
+        "laravel/pint": "^1.0",
+        "mockery/mockery": "^1.6",
+        "nunomaduro/collision": "^7.0",
+        "phpunit/phpunit": "^10.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "App\\": "app/"
+        },
+        "classmap": [
+            "database/seeders",
+            "database/factories"
+        ]
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Tests\\": "tests/"
+        }
+    },
+    "scripts": {
+        "post-autoload-dump": [
+            "Illuminate\\Foundation\\ComposerScripts::postAutoloadDump",
+            "@php artisan package:discover --ansi"
+        ],
+        "post-update-cmd": [
+            "@php artisan vendor:publish --tag=laravel-assets --ansi --force"
+        ],
+        "post-root-package-install": [
+            "@php -r \"file_exists('.env') || copy('.env.example', '.env');\""
+        ],
+        "post-create-project-cmd": [
+            "@php artisan key:generate --ansi"
+        ]
+    },
+    "config": {
+        "optimize-autoloader": true,
+        "preferred-install": "dist",
+        "sort-packages": true
+    },
+    "minimum-stability": "stable",
+    "prefer-stable": true
+}

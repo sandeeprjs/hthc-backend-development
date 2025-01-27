@@ -41,6 +41,9 @@ RUN apk add --no-cache \
 RUN mkdir -p /run/nginx
 COPY docker/nginx.conf /etc/nginx/nginx.conf.template
 
+# Configure PHP-FPM
+COPY docker/php-fpm.conf /usr/local/etc/php-fpm.d/www.conf
+
 # Copy application files
 WORKDIR /app
 COPY . .
@@ -53,7 +56,9 @@ RUN wget -O /usr/local/bin/composer https://getcomposer.org/composer.phar \
 RUN composer install --no-dev --no-interaction --optimize-autoloader
 
 # Set permissions
-RUN chown -R www-data:www-data /app/storage /app/bootstrap/cache
+RUN mkdir -p /app/storage/logs /app/bootstrap/cache \
+    && chmod -R 775 /app/storage /app/bootstrap/cache \
+    && chown -R www-data:www-data /app/storage /app/bootstrap/cache
 
 # Startup script
 COPY --chmod=0755 docker/startup.sh /app/docker/startup.sh

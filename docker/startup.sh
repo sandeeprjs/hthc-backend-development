@@ -1,19 +1,68 @@
 #!/bin/sh
 
-# Process environment variables in Nginx config
+# Create .env file from environment variables
+cat <<EOF > /app/.env
+APP_NAME=${APP_NAME:-Laravel}
+APP_ENV=${APP_ENV:-production}
+APP_KEY=${APP_KEY}
+APP_DEBUG=${APP_DEBUG:-false}
+APP_URL=${APP_URL:-http://localhost}
+
+LOG_CHANNEL=${LOG_CHANNEL:-stack}
+
+DB_CONNECTION=${DB_CONNECTION:-mysql}
+DB_HOST=${DB_HOST}
+DB_PORT=${DB_PORT:-3306}
+DB_DATABASE=${DB_DATABASE}
+DB_USERNAME=${DB_USERNAME}
+DB_PASSWORD=${DB_PASSWORD}
+
+BROADCAST_DRIVER=${BROADCAST_DRIVER:-log}
+CACHE_DRIVER=${CACHE_DRIVER:-redis}
+QUEUE_CONNECTION=${QUEUE_CONNECTION:-redis}
+SESSION_DRIVER=${SESSION_DRIVER:-redis}
+SESSION_LIFETIME=${SESSION_LIFETIME:-120}
+
+REDIS_URL=${REDIS_URL}
+REDIS_CLIENT=${REDIS_CLIENT:-predis}
+
+MAIL_MAILER=${MAIL_MAILER:-log}
+MAIL_HOST=${MAIL_HOST}
+MAIL_PORT=${MAIL_PORT:-2525}
+MAIL_USERNAME=${MAIL_USERNAME}
+MAIL_PASSWORD=${MAIL_PASSWORD}
+MAIL_ENCRYPTION=${MAIL_ENCRYPTION}
+MAIL_FROM_ADDRESS=${MAIL_FROM_ADDRESS}
+MAIL_FROM_NAME="${MAIL_FROM_NAME:-${APP_NAME}}"
+EOF
+
+
+# Ensure Laravel permissions
+chown -R www-data:www-data /app/storage /app/bootstrap/cache
+
+# Process Nginx config template
 envsubst '\$PORT' < /etc/nginx/nginx.conf.template > /etc/nginx/nginx.conf
 
-# Wait for Redis
+
+
+# Wait for Redis with SSL support
 if [ -n "$REDIS_URL" ]; then
     REDIS_HOST=$(echo $REDIS_URL | awk -F[@:] '{print $4}')
     REDIS_PORT=$(echo $REDIS_URL | awk -F[@:] '{print $5}')
-    echo "Waiting for Redis at $REDIS_HOST:$REDIS_PORT..."
-    timeout 30 sh -c "until nc -z $REDIS_HOST $REDIS_PORT; do sleep 1; done"
+    REDIS_PASSWORD=$(echo $REDIS_URL | awk -F[/@] '{print $3}' | cut -d: -f2)
+
+    echo "Testing Redis connection to $REDIS_HOST:$REDIS_PORT"
+    timeout 30 sh -c "until redis-cli --tls -h $REDIS_HOST -p $REDIS_PORT -a $REDIS_PASSWORD ping | grep -q PONG; do sleep 1; done"
 fi
 
-# Start PHP-FPM in background
+# Start PHP-FPM
 php-fpm -D
 
-# Start Nginx in foreground
-echo "Starting Nginx on port ${PORT}"
-exec nginx -g "daemon off;"
+# Clear and cache Laravel configurations
+php artisan config:clear
+php artisan config:cache
+php artisan route:cache
+php artisan view:cache
+
+# Start Nginx
+exec nginx -g 'daemon off;'

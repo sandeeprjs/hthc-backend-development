@@ -1,3 +1,4 @@
+# Changes to Dockerfile
 FROM php:8.3-fpm-alpine
 
 # Install system dependencies
@@ -55,8 +56,10 @@ RUN wget -O /usr/local/bin/composer https://getcomposer.org/composer.phar \
 # Install dependencies
 RUN composer install --no-dev --no-interaction --optimize-autoloader
 
-# Set permissions
-RUN mkdir -p /app/storage/logs /app/bootstrap/cache \
+# Set up storage structure and permissions
+RUN mkdir -p /app/storage/framework/{sessions,views,cache} \
+    && mkdir -p /app/storage/logs \
+    && mkdir -p /app/bootstrap/cache \
     && chmod -R 775 /app/storage /app/bootstrap/cache \
     && chown -R www-data:www-data /app/storage /app/bootstrap/cache
 

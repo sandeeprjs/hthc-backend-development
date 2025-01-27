@@ -1,3 +1,74 @@
+# Changes to Dockerfile
+FROM php:8.3-fpm-alpine
+
+# Install system dependencies
+RUN apk update && apk add --no-cache \
+    nginx \
+    wget \
+    git \
+    unzip \
+    libpng-dev \
+    libjpeg-turbo-dev \
+    freetype-dev \
+    libzip-dev \
+    zlib-dev \
+    libsodium-dev \
+    curl-dev \
+    gettext \
+    # Add required build tools
+    $PHPIZE_DEPS \
+    && docker-php-ext-configure gd --with-freetype --with-jpeg \
+    && docker-php-ext-configure zip \
+    && docker-php-ext-install -j$(nproc) \
+        gd \
+        zip \
+        sodium \
+        pdo_mysql \
+        curl \
+        opcache \
+        pcntl \
+    # Cleanup build dependencies
+    && apk del $PHPIZE_DEPS
+
+# Install Redis extension
+RUN apk add --no-cache \
+    hiredis-dev \
+    $PHPIZE_DEPS \
+    && pecl install redis \
+    && docker-php-ext-enable redis \
+    && apk del $PHPIZE_DEPS
+
+# Configure nginx
+RUN mkdir -p /run/nginx
+COPY docker/nginx.conf /etc/nginx/nginx.conf.template
+
+# Configure PHP-FPM
+COPY docker/php-fpm.conf /usr/local/etc/php-fpm.d/www.conf
+
+# Copy application files
+WORKDIR /app
+COPY . .
+
+# Install Composer
+RUN wget -O /usr/local/bin/composer https://getcomposer.org/composer.phar \
+    && chmod +x /usr/local/bin/composer
+
+# Install dependencies
+RUN composer install --no-dev --no-interaction --optimize-autoloader
+
+# Set up storage structure and permissions
+RUN mkdir -p /app/storage/framework/{sessions,views,cache} \
+    && mkdir -p /app/storage/logs \
+    && mkdir -p /app/bootstrap/cache \
+    && chmod -R 775 /app/storage /app/bootstrap/cache \
+    && chown -R www-data:www-data /app/storage /app/bootstrap/cache
+
+# Startup script
+COPY --chmod=0755 docker/startup.sh /app/docker/startup.sh
+
+CMD ["/app/docker/startup.sh"]
+
+# Changes to startup.sh
 #!/bin/sh
 
 # Create .env file from environment variables
@@ -36,14 +107,22 @@ MAIL_FROM_ADDRESS=${MAIL_FROM_ADDRESS}
 MAIL_FROM_NAME="${MAIL_FROM_NAME:-${APP_NAME}}"
 EOF
 
+# Ensure storage structure exists and has correct permissions
+ensure_storage_structure() {
+    echo "Ensuring storage structure exists..."
+    mkdir -p /app/storage/framework/{sessions,views,cache}
+    mkdir -p /app/storage/logs
+    mkdir -p /app/bootstrap/cache
 
-# Ensure Laravel permissions
-chown -R www-data:www-data /app/storage /app/bootstrap/cache
+    echo "Setting correct permissions..."
+    chmod -R 775 /app/storage /app/bootstrap/cache
+    chown -R www-data:www-data /app/storage /app/bootstrap/cache
+}
+
+ensure_storage_structure
 
 # Process Nginx config template
 envsubst '\$PORT' < /etc/nginx/nginx.conf.template > /etc/nginx/nginx.conf
-
-
 
 # Wait for Redis with SSL support
 if [ -n "$REDIS_URL" ]; then
@@ -57,6 +136,12 @@ fi
 
 # Start PHP-FPM
 php-fpm -D
+
+# Verify storage permissions before cache commands
+if [ ! -w "/app/storage/framework/views" ]; then
+    echo "Warning: Views directory not writable, fixing permissions..."
+    ensure_storage_structure
+fi
 
 # Clear and cache Laravel configurations
 php artisan config:clear

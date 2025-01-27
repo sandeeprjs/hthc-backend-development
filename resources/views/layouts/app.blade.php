@@ -1,3 +1,4 @@
+# Save this as resources/views/layouts/app.blade.php
 <!doctype html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
 <head>
@@ -10,13 +11,9 @@
     <title>HTHC</title>
 
     <link rel="icon" href="{!! secure_asset('images/favicon.ico') !!}"/>
-    <!-- Scripts -->
 
-    <script src="{{ secure_asset('js/app.js') }}" defer></script>
-
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.1.4/jquery.min.js"></script>
-    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js"></script>
-    <script src="{{ secure_asset('js/custom.js') }}" defer></script>
+    <!-- Styles -->
+    <link href="{{ secure_asset('css/app.css') }}" rel="stylesheet">
 
     <!-- Fonts -->
     <link rel="dns-prefetch" href="//fonts.gstatic.com">
@@ -24,11 +21,29 @@
     <!-- Font Awesome CDN -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" integrity="sha384-5e2ESR8Ycmos6g3gAKr1Jvwye8sW4U1u/cAKulfVJnkakCcMqhOudbtPnvJ+nbv7" crossorigin="anonymous">
 
-    <!-- Styles -->
-    <link href="{{ secure_asset('css/app.css') }}" rel="stylesheet">
-
+    <!-- Scripts -->
+    <script src="{{ secure_asset('js/app.js') }}" defer></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.1.4/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js"></script>
+    <script src="{{ secure_asset('js/custom.js') }}" defer></script>
 </head>
 <body>
-<!-- Rest of the file remains the same -->
+<div id="app">
+    @if (Request::is('admin/*'))
+        <div class="navigation">
+            @include('components.nav')
+        </div>
+    @endif
+
+    @hasSection('content')
+        <main class="main-container">
+            @yield('content')
+        </main>
+    @else
+        <main class="container">
+            @yield('auth-content')
+        </main>
+    @endif
+</div>
 </body>
 </html>

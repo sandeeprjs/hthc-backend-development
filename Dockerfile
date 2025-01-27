@@ -1,23 +1,21 @@
-# Use PHP 8.3 with Alpine Linux
 FROM php:8.3-fpm-alpine
 
-# Install system dependencies and PHP extensions
+# Install system dependencies
 RUN apk update && apk add --no-cache \
     nginx \
     wget \
     git \
     unzip \
-    # GD dependencies
     libpng-dev \
     libjpeg-turbo-dev \
     freetype-dev \
-    # Zip extension dependencies
     libzip-dev \
     zlib-dev \
-    # Other dependencies
     libsodium-dev \
     curl-dev \
-    # Configure and install extensions
+    gettext \
+    # Add required build tools
+    $PHPIZE_DEPS \
     && docker-php-ext-configure gd --with-freetype --with-jpeg \
     && docker-php-ext-configure zip \
     && docker-php-ext-install -j$(nproc) \
@@ -28,34 +26,33 @@ RUN apk update && apk add --no-cache \
         curl \
         opcache \
         pcntl \
-    # Cleanup
-    && rm -rf /var/cache/apk/* /tmp/*
+    # Cleanup build dependencies
+    && apk del $PHPIZE_DEPS
 
-RUN apk add --no-cache \
-    # Add Redis-related dependencies
-    redis \
-    hiredis-dev \
-    && docker-php-ext-install redis \
+# Install Redis extension
+RUN apk add --no-cache hiredis-dev \
+    && pecl install redis \
+    && docker-php-ext-enable redis
 
 # Configure nginx
 RUN mkdir -p /run/nginx
-COPY docker/nginx.conf /etc/nginx/nginx.conf
+COPY docker/nginx.conf /etc/nginx/nginx.conf.template
 
-# Set working directory
+# Copy application files
 WORKDIR /app
+COPY . .
 
 # Install Composer
 RUN wget -O /usr/local/bin/composer https://getcomposer.org/composer.phar \
     && chmod +x /usr/local/bin/composer
 
-# Copy application files
-COPY . .
-
 # Install dependencies
 RUN composer install --no-dev --no-interaction --optimize-autoloader
 
-# Fix permissions
-RUN chown -R www-data:www-data /app
+# Set permissions
+RUN chown -R www-data:www-data /app/storage /app/bootstrap/cache
 
-# Startup command
-CMD ["sh", "/app/docker/startup.sh"]
+# Startup script
+COPY --chmod=+x docker/startup.sh /app/docker/startup.sh
+
+CMD ["/app/docker/startup.sh"]

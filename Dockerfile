@@ -30,9 +30,12 @@ RUN apk update && apk add --no-cache \
     && apk del $PHPIZE_DEPS
 
 # Install Redis extension
-RUN apk add --no-cache hiredis-dev \
+RUN apk add --no-cache \
+    hiredis-dev \
+    $PHPIZE_DEPS \
     && pecl install redis \
-    && docker-php-ext-enable redis
+    && docker-php-ext-enable redis \
+    && apk del $PHPIZE_DEPS
 
 # Configure nginx
 RUN mkdir -p /run/nginx
@@ -53,6 +56,6 @@ RUN composer install --no-dev --no-interaction --optimize-autoloader
 RUN chown -R www-data:www-data /app/storage /app/bootstrap/cache
 
 # Startup script
-COPY --chmod=+x docker/startup.sh /app/docker/startup.sh
+COPY --chmod=0755 docker/startup.sh /app/docker/startup.sh
 
 CMD ["/app/docker/startup.sh"]

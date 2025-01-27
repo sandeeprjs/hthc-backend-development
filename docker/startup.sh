@@ -36,19 +36,18 @@ MAIL_FROM_ADDRESS=${MAIL_FROM_ADDRESS}
 MAIL_FROM_NAME="${MAIL_FROM_NAME:-${APP_NAME}}"
 EOF
 
-# Double-check directory permissions on startup
-echo "Verifying directory permissions..."
-chgrp -R www-data /app/bootstrap /app/storage /app/storage/logs
-chmod -R 755 /app/bootstrap /app/storage /app/storage/logs
-chmod -R g+w /app/bootstrap /app/storage /app/storage/logs
-find /app/bootstrap -type d -exec chmod g+s {} +
-find /app/storage -type d -exec chmod g+s {} +
-find /app/storage/logs -type d -exec chmod g+s {} +
+# Verify and fix directory permissions if needed
+echo "Verifying directory structure and permissions..."
+mkdir -p /app/storage/framework/views
+mkdir -p /app/storage/framework/cache/data
+mkdir -p /app/storage/framework/sessions
+mkdir -p /app/storage/logs
+mkdir -p /app/bootstrap/cache
 
-# Ensure log file exists and has correct permissions
-touch /app/storage/logs/laravel.log
-chown www-data:www-data /app/storage/logs/laravel.log
-chmod 664 /app/storage/logs/laravel.log
+chown -R www-data:www-data /app/storage /app/bootstrap/cache
+chmod -R 775 /app/storage /app/bootstrap/cache
+find /app/storage -type d -exec chmod g+s {} \;
+find /app/bootstrap/cache -type d -exec chmod g+s {} \;
 
 # Process Nginx config template
 envsubst '\$PORT' < /etc/nginx/nginx.conf.template > /etc/nginx/nginx.conf

@@ -54,19 +54,16 @@ RUN wget -O /usr/local/bin/composer https://getcomposer.org/composer.phar \
 # Install dependencies
 RUN composer install --no-dev --no-interaction --optimize-autoloader
 
-# Set up directory structure and permissions exactly as specified
-RUN mkdir -p /app/storage/logs \
-    && mkdir -p /app/storage/framework/{sessions,views,cache} \
+# Set up Laravel directory structure with proper ownership and permissions
+RUN mkdir -p /app/storage/framework/views \
+    && mkdir -p /app/storage/framework/cache/data \
+    && mkdir -p /app/storage/framework/sessions \
+    && mkdir -p /app/storage/logs \
     && mkdir -p /app/bootstrap/cache \
-    && chgrp -R www-data /app/bootstrap /app/storage /app/storage/logs \
-    && chmod -R 755 /app/bootstrap /app/storage /app/storage/logs \
-    && chmod -R g+w /app/bootstrap /app/storage /app/storage/logs \
-    && find /app/bootstrap -type d -exec chmod g+s {} + \
-    && find /app/storage -type d -exec chmod g+s {} + \
-    && find /app/storage/logs -type d -exec chmod g+s {} + \
-    && touch /app/storage/logs/laravel.log \
-    && chown www-data:www-data /app/storage/logs/laravel.log \
-    && chmod 664 /app/storage/logs/laravel.log
+    && chown -R www-data:www-data /app/storage /app/bootstrap/cache \
+    && chmod -R 775 /app/storage /app/bootstrap/cache \
+    && find /app/storage -type d -exec chmod g+s {} \; \
+    && find /app/bootstrap/cache -type d -exec chmod g+s {} \;
 
 
 # Copy and set startup script permissions

@@ -21,6 +21,9 @@ Auth::routes();
 Route::get('/admin/home', 'HomeController@index')->name('home');
 Route::get('/admin/overview', 'Admin\DashboardController@index')->name('overview');
 
+
+
+
 //Franchisee
 Route::post('/admin/franchisee/search', 'Admin\FranchiseeController@search')->name('franchisee.search');
 Route::get('/admin/franchisees/{id}/view', 'Admin\FranchiseeController@view')->name('franchisee.view');

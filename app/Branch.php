@@ -12,14 +12,17 @@ class Branch extends Model
     use SoftDeletes;
 
     protected $fillable = [
-        'branch_type','code','mobile_number','email','gender','phone_number',
-        'branch_name','add_line_1','city','state','country','pincode_id','incharge_name'
-        
+        'branch_type', 'code', 'mobile_number', 'email', 'gender',
+        'phone_number', 'branch_name', 'add_line_1', 'add_line_2',
+        'city', 'state', 'country_id', 'pincode_id', 'incharge_name',
+        'latitude', 'longitude', 'active', 'opening_time',
+        'closing_time', 'closing_days', 'remarks', 'name', 'location'
     ];
+
     public function serviceablePins(){
-       
+
         return $this->hasMany(ServiceablePin::class,'office_id','id');
-   
+
     }
 
     public function franchisees(){
@@ -31,6 +34,6 @@ class Branch extends Model
         return $this->hasOne(Pincode::class,'pincode_id');
     }
 
-    
+
 
 }

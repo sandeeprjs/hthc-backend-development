@@ -4,56 +4,52 @@ namespace Database\Seeders;
 
 use App\Booking;
 use Illuminate\Database\Seeder;
-use Carbon\Carbon;
 
 class BookingSeeder extends Seeder
 {
     public function run()
     {
-        $bookings = [
+        Booking::insert([
             [
-                'consg_number' => 'CN123456',
+                'consg_number' => 'CN001',
+                'consg_type' => 'Standard',
                 'customer_id' => 1,
-                'subscription_id' => 1, // Standard Delivery
-                'status' => 'Booked',
-                'weight' => 2.5,
-                'pincode_id' => 1, // Koramangala
-                'created_at' => Carbon::now()->subDays(5),
+                'customer_name' => 'Alpha Enterprises',
+                'mobile_number' => '9876543210',
+                'add_line_1' => 'Koramangala Main Road',
+                'city' => 'Bangalore',
+                'state' => 'Karnataka',
+                'pincode_id' => 1,
+                'country_id' => 1,
+                'weight' => '10kg',
+                'booking_status' => 'Booked',
+                'booking_date' => now(),
+                'booked_amount' => '500',
+                'payment_mode' => 'Online',
+                'remarks' => 'First booking',
+                'created_at' => now(),
+                'updated_at' => now()
             ],
             [
-                'consg_number' => 'CN123457',
+                'consg_number' => 'CN002',
+                'consg_type' => 'Express',
                 'customer_id' => 2,
-                'subscription_id' => 2, // Express Delivery
-                'status' => 'Dispatched',
-                'weight' => 1.2,
-                'pincode_id' => 2, // Whitefield
-                'created_at' => Carbon::now()->subDays(3),
-            ],
-            [
-                'consg_number' => 'CN123458',
-                'customer_id' => 3,
-                'subscription_id' => 3, // Overnight Delivery
-                'status' => 'In Transit',
-                'weight' => 3.0,
-                'pincode_id' => 3, // Jayanagar
-                'created_at' => Carbon::now()->subDays(2),
-            ],
-            [
-                'consg_number' => 'CN123459',
-                'customer_id' => 4,
-                'subscription_id' => 1,
-                'status' => 'Delivered',
-                'weight' => 1.8,
-                'pincode_id' => 4, // Indiranagar
-                'created_at' => Carbon::now()->subDays(1),
-            ],
-        ];
-
-        foreach ($bookings as $data) {
-            Booking::updateOrCreate(
-                ['consg_number' => $data['consg_number']],
-                $data
-            );
-        }
+                'customer_name' => 'Beta Solutions',
+                'mobile_number' => '9876543211',
+                'add_line_1' => 'Whitefield Main Road',
+                'city' => 'Bangalore',
+                'state' => 'Karnataka',
+                'pincode_id' => 2,
+                'country_id' => 1,
+                'weight' => '5kg',
+                'booking_status' => 'Booked',
+                'booking_date' => now(),
+                'booked_amount' => '1000',
+                'payment_mode' => 'Cash',
+                'remarks' => 'Urgent delivery',
+                'created_at' => now(),
+                'updated_at' => now()
+            ]
+        ]);
     }
 }

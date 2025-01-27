@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Manifest;
 use App\Booking;
+use Illuminate\Support\Facades\Log;
 
 class RunsheetController extends Controller
 {
@@ -56,17 +57,24 @@ class RunsheetController extends Controller
 
         $isOutGoingManifest =  true;
         $isBooking = $this->isBooking($consg_number);
+
+        Log::info("Check validation 1", ['isBooking' => $isBooking]);
+
         if(!$isBooking){
             return response()->json([
                 'status' => 0,
                 'message' => 'There is no booking entry for this consignment.',
-               
+
             ], 200);
         }
-       
+        Log::info("Check validation 2");
+
         if($officeType != 'FR'){
-            $isOutGoingManifest = $this->isOutGoingManifest($consg_number,$officeId,$officeType);
-            if(!$isOutGoingManifest){
+            $isOutGoingManifest = $this->isOutGoingManifest(
+                consg_number: $consg_number,
+                loggedOfficeId: $officeId,
+                officeType: $officeType
+            );            if(!$isOutGoingManifest){
                 return response()->json([
                     'status' => 0,
                     'message' => 'There is no outgoing manifest for this consignment',
@@ -84,7 +92,7 @@ class RunsheetController extends Controller
             }
         }
         $no_of_attempts = $this->getNoOfAttempts($consg_number);
-       
+
         if($no_of_attempts > 4){
             return response()->json([
                 'status' => 0,
@@ -100,7 +108,7 @@ class RunsheetController extends Controller
                 return response()->json([
                     'status' => 0,
                     'message' => 'Not yet reached to Destination Hub',
-                   
+
                 ], 200);
             }
         }
@@ -126,7 +134,7 @@ class RunsheetController extends Controller
         $manifest = Manifest::where('manifest_number', '=', $consg_number)
         ->where('manifest_type', '=', 'R')
         ->first();
- 
+
         if($manifest){
             return true;
         }
@@ -134,28 +142,34 @@ class RunsheetController extends Controller
         return false;
     }
 
-    public function isOutGoingManifest($consg_number,$loggedOfficeId,$officeType){
-     
-        //echo $consg_number.'=='.$loggedOfficeId.'=='.$officeType;exit;
-
+    public function isOutGoingManifest($consg_number, $loggedOfficeId, $officeType)
+    {
+        Log::info('Validating outgoing manifest', [
+            'consg_number' => $consg_number,
+            'loggedOfficeId' => $loggedOfficeId,
+            'officeType' => $officeType,
+        ]);
+        // Check if the logged-in office is the sender for outgoing manifests
         $manifest = Manifest::where('manifest_number', '=', $consg_number)
-        ->where('manifest_type', '=', 'O')
-        ->where('receiver_id', '=', $loggedOfficeId)
-        ->where('receiver_type', '=', $officeType)
-        ->first();
- 
-        if($manifest){
+            ->where('manifest_type', '=', 'O')
+            ->where('sender_id', '=', $loggedOfficeId)
+            ->where('sender_type', '=', $officeType)
+            ->first();
+
+        if ($manifest) {
+            Log::info('Outgoing manifest found', ['manifest' => $manifest]);
             return true;
         }
 
+        Log::info('Outgoing manifest not found');
         return false;
-
     }
+
 
     public function isBooking($consg_number){
         $booking = Booking::where('consg_number', '=', $consg_number)
         ->first();
-  
+
         if($booking){
             return true;
         }
@@ -190,17 +204,17 @@ class RunsheetController extends Controller
         $not_added_in_sheet = null;
         $no_outgoing = null;
         $added_to_runsheet = null;
-        $already_added = null;  
+        $already_added = null;
         $customer_view =1;
         $isOutGoingManifest =  true;
         if(!$consg_numbers){
             return redirect()->route('runsheet.add');
         }
-        foreach($consg_numbers as $consg_number){            
+        foreach($consg_numbers as $consg_number){
             if($isOutGoingManifest){
 
                 Booking::where('consg_number', '=', $consg_number)->update(array('status' => 'Out for Delivery'));
-                
+
                 if($officeType == 'FR'){
                     $manifest = Manifest::where('manifest_type', '=', 'O')
                     ->where('receiver_type', '=', $officeType)
@@ -238,7 +252,7 @@ class RunsheetController extends Controller
                     // 'remarks' => $data['remarks']
                     'remarks' =>''
                     ]);
-                    
+
                     if($outForDelivery){
                         $added_to_runsheet[] = $consg_number;
 
@@ -247,6 +261,6 @@ class RunsheetController extends Controller
        }
 
        return redirect()->route('runsheet.add')->with('success', 'Runsheet has been added successfully');
-        
+
     }
 }

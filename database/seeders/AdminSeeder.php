@@ -16,40 +16,97 @@ class AdminSeeder extends Seeder
             [
                 'first_name' => 'HTHC',
                 'last_name' => 'Admin',
-                'email' => 'sudhilal@netiapps.com',
-                'password' => 'dEvOps1234$$',
+                'email' => 'admin@hthc.com',
+                'username' => 'ADMIN001',
+                'password' => 'Admin@1234',
                 'office_type' => 'HO',
                 'office_id' => 1,
             ],
+            [
+                'first_name' => 'Netiapps',
+                'last_name' => 'Support',
+                'email' => 'support@netiapps.com',
+                'username' => 'ADMIN002',
+                'password' => 'Support@1234',
+                'office_type' => 'HO',
+                'office_id' => 2,
+            ],
+            [
+                'first_name' => 'Netiapps',
+                'last_name' => 'Support',
+                'email' => 'support@netiapps.com',
+                'username' => 'ADMIN002',
+                'password' => 'Support@1234',
+                'office_type' => 'HO',
+                'office_id' => 2,
+            ],
+            [
+                'first_name' => 'HTHC',
+                'last_name' => 'Admin',
+                'email' => 'admin@hthc.com',
+                'username' => 'ADMIN001',
+                'password' => 'Admin@1234',
+                'office_type' => 'HO',
+                'office_id' => 3, // H0001
+            ],
+            [
+                'first_name' => 'Netiapps',
+                'last_name' => 'Support',
+                'email' => 'support@netiapps.com',
+                'username' => 'ADMIN002',
+                'password' => 'Support@1234',
+                'office_type' => 'HO',
+                'office_id' => 3, // H0001
+            ],
+            [
+                'first_name' => 'John',
+                'last_name' => 'Doe',
+                'email' => 'centraladmin@example.com',
+                'username' => 'CB001_ADMIN',
+                'password' => 'Central@123',
+                'office_type' => 'Main',
+                'office_id' => 1, // CB001
+            ],
+            [
+                'first_name' => 'Jane',
+                'last_name' => 'Smith',
+                'email' => 'northadmin@example.com',
+                'username' => 'NB001_ADMIN',
+                'password' => 'North@123',
+                'office_type' => 'Secondary',
+                'office_id' => 2, // NB001
+            ],
         ];
 
+        // Ensure the administrator role exists
         $role = Role::updateOrCreate(
             ['name' => 'administrator'],
             [
-                'name' => 'administrator',
-                'description' => 'Super User, having access to all sites.'
+                'description' => 'Super User, having access to all sites.',
             ]
         );
 
         foreach ($adminDetails as $adminDetail) {
-            $admin = User::where('email', $adminDetail['email'])->first();
-
-            if (!$admin) {
-                $admin = User::factory()->create([
+            // Find or create the admin user
+            $admin = User::updateOrCreate(
+                ['email' => $adminDetail['email']],
+                [
                     'first_name' => $adminDetail['first_name'],
                     'last_name' => $adminDetail['last_name'],
-                    'email' => $adminDetail['email'],
-                    'username' => 'HO001',
+                    'username' => $adminDetail['username'],
                     'password' => Hash::make($adminDetail['password']),
                     'office_type' => $adminDetail['office_type'],
-                    'office_id' => $adminDetail['office_id']
-                ]);
+                    'office_id' => $adminDetail['office_id'],
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ]
+            );
 
-                UserRole::create([
-                    'user_id' => $admin->id,
-                    'role_id' => $role->id
-                ]);
-            }
+            // Assign the administrator role to the user
+            UserRole::updateOrCreate(
+                ['user_id' => $admin->id, 'role_id' => $role->id],
+                []
+            );
         }
     }
 }

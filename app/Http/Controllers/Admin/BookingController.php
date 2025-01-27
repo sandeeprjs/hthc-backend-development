@@ -35,7 +35,7 @@ use URL;
 
 
 
-class BookingController extends Controller  
+class BookingController extends Controller
 {
     public function __construct() {
         $this->middleware(['auth', 'role'])->except('calculateVolumetricWeight', 'sms', 'getBulkBookingSample', 'getManifestSample');
@@ -48,7 +48,7 @@ class BookingController extends Controller
      */
     public function index(Request $request)
     {
-      
+
         $this->validate($request, [
             'start_date' => 'nullable',
             'end_date' => 'nullable',
@@ -76,7 +76,7 @@ class BookingController extends Controller
         }
 
         if($request->get('btnSubmit') == 'export') {
-          
+
             $consg_number = $request->input('consg_number');
             $customer_id = $request->input('customer_id');
             $start_date = $request->input('start_date');
@@ -87,7 +87,7 @@ class BookingController extends Controller
 
         $user = Auth::user();
 
-       
+
 
         $bookings = Booking::when(!$user->isAdmin(), function ($q) use ($user) {
                 $q->where('origin_office_type', $user->office_type)
@@ -112,12 +112,12 @@ class BookingController extends Controller
                 $q->where('origin_office_type', 'FR')->where('origin_office_id', $frCode);
             })
             ->latest('id')->paginate(20);
-       
+
         $subscriptions = Subscription::select(['id', 'name'])->get();
         $customer = Customer::select(['id', 'code'])->where('id', $customerId)->first();
         $franchisee = Franchisee::select(['id', 'code'])->where('id', $frCode)->first();
         $bookingStatuses = Booking::distinct('status')->pluck('status');
-      
+
         return view('bookings.index', compact(['bookings', 'customer', 'subscriptions', 'bookingStatuses', 'franchisee']));
     }
 
@@ -210,10 +210,10 @@ class BookingController extends Controller
                         $fail('Can not book this '.$attribute . '. It was generated to different Office');
                     }
                 }
-                
+
             }]
         ]);
-      
+
         $user = Auth::user();
         $customer = Customer::where('id', '=', $request->input('customer_id'))->first();
 
@@ -323,16 +323,16 @@ class BookingController extends Controller
             AppHelper::sendShipperCopy($booking->customer_name, $booking->mobile_number, $booking->consg_number);
         }
 
-        if($booking->email){
-            // $data = ['message' => 'This is a test!']; 
+        // if($booking->email){
+            // $data = ['message' => 'This is a test!'];
             //Mail::to('janagiraman@netiapps.com')->send(new TestEmail($data));
             //"https://hthc.co.in/booking/acknowledgement/s-$booking->consg_number" ;
-            Mail::to($booking->email)->send(new ConsignmentBooked($booking, $delivery,'sender'));
-        }
-        if($delivery->email){
-            Mail::to($delivery->email)->send(new ConsignmentBooked($booking, $delivery,'receiver'));
-        }
-        
+        //     Mail::to($booking->email)->send(new ConsignmentBooked($booking, $delivery,'sender'));
+        // }
+        // if($delivery->email){
+        //     Mail::to($delivery->email)->send(new ConsignmentBooked($booking, $delivery,'receiver'));
+        // }
+
 
         return redirect(route('bookings.index'))->withSuccess('Booking created successfully!');
 
@@ -361,7 +361,7 @@ class BookingController extends Controller
 
     public function import(Request $request)
     {
-       
+
         $this->validate($request, [
             'sender_name' => 'required',
             'sender_address' => 'nullable',
@@ -469,10 +469,10 @@ class BookingController extends Controller
         $user = Auth::user();
         $bulkBookingIds = BulkBooking::where('batch_id', $batchId)->pluck('id');
         $bulkBookings = BulkBooking::where('batch_id', $batchId)->where('has_error', 0)->get();
-        
+
         foreach ($bulkBookings as $key => $bulkBooking) {
             $consignment = AppHelper::generateSingleConsignment($user->office_type, $user->office_id, $batchId);
-          
+
             $booking = new Booking();
 
             //sender details
@@ -528,25 +528,25 @@ class BookingController extends Controller
             $delivery->mobile_number = $bulkBooking->receiver_mobile_number;
             $delivery->phone_number = $bulkBooking->receiver_phone_number;
             $delivery->email = $bulkBooking->receiver_email;
-  
+
             $delivery->save();
 
             //uncomment before moving to the server
 //            if ($booking->sms_to_receiver == 1 && $delivery->mobile_number) {
 //                AppHelper::sendTrackingMessage($delivery->receiver_name, $delivery->mobile_number, $booking->consg_number);
 //            }
-            if($delivery->email){ 
+            if($delivery->email){
                 Mail::to($delivery->email)->send(new ConsignmentBooked($booking, $delivery,'receiver'));
             }
 
         }
-        
+
         $batch_id = $batchId * env('ENC_KEY');
         if($sender_email){
-            
+
             Mail::to($sender_email)->send(new BulkBookingMail($batch_id, $sender_name));
         }
-       
+
         $booking = Booking::select('id', 'customer_id', 'customer_name', 'mobile_number', 'sms_to_sender')->where('batch_id', '=', $batchId)->latest('id')->first();
         if ($booking->sms_to_sender == 1 && $booking->mobile_number) {
             // AppHelper::sendBulkTrackingMessage($booking->customer_name, $booking->mobile_number, $batch_id);
@@ -555,9 +555,9 @@ class BookingController extends Controller
             AppHelper::sendShipperCopy($booking->customer_name, $booking->mobile_number, $batch_id);
         }
 
-         
-       
-        
+
+
+
         BulkBooking::destroy($bulkBookingIds);
         $consignments = Consignment::select('id', 'consg_number')->where('batch_id', '=', $batchId)->get();
         $bookingIds = Booking::where('batch_id', $batchId)->pluck('id');
@@ -601,20 +601,20 @@ class BookingController extends Controller
         $sender = urlencode('hthcin');
         // $url = "www.hthc.co.in/track";
         $url = "hthc.co.in/sp/s-BR01-00007765";
-        
+
         //$message = "Dear $CustomerName, your AWB # $AWB is booked and will be delivered by HTHC Courier, to track $url";
         $message = "Dear $CustomerName, Your shipment is booked with HTHC Courier. Please check the shipper copy $url";
-        
+
         // $url = "https://hthc.co.in/booking/acknowledgement/$consgNumber";
        // $url="https://hthc.co.in/booking";
         //$message = "Dear $Name, Your shipment is booked with HTHC Courier. Please see the shipper copy for your reference, $url";
 
         //$message = "Dear $Name, Your shipment is booked with HTHC Courier. Please see the shipper copy for your reference, %%|url^{"inputtype" : "text", "maxlength" : "150"}%%
         $numbers = implode(',', $numbers);
-    
+
         // Prepare data for POST request
         $data = array('apikey' => $apiKey, 'numbers' => $numbers, "sender" => $sender, "message" => $message);
-    
+
         // Send the POST request with cURL
         $ch = curl_init('https://api.textlocal.in/send/');
         curl_setopt($ch, CURLOPT_POST, true);
@@ -632,10 +632,10 @@ class BookingController extends Controller
         // $url = "https://hthc.co.in/booking/acknowledgement";
         // $message = "Dear $Name, Your shipment is booked with HTHC Courier. Please see the shipper copy for your reference, $url";
         // $numbers = implode(',', $numbers);
-    
+
         // // Prepare data for POST request
         // $data = array('apikey' => $apiKey, 'numbers' => $numbers, "sender" => $sender, "message" => $message);
-    
+
         // // Send the POST request with cURL
         // $ch = curl_init('https://api.textlocal.in/send/');
         // curl_setopt($ch, CURLOPT_POST, true);
@@ -656,10 +656,10 @@ class BookingController extends Controller
     //     // $message = "Dear $CustomerName, Your shipment is booked with HTHC Courier. Please see the shipper copy for your reference, $url";
     //     $message = "Dear $CustomerName. Your consignment AWB # $consgNumber has been successfully delivered by HTHC Courier.";
     //     $numbers = implode(',', $numbers);
-    
+
     //     // Prepare data for POST request
     //     $data = array('apikey' => $apiKey, 'numbers' => $numbers, "sender" => $sender, "message" => $message);
-    
+
     //     // Send the POST request with cURL
     //     $ch = curl_init('https://api.textlocal.in/send/');
     //     curl_setopt($ch, CURLOPT_POST, true);
@@ -675,7 +675,7 @@ class BookingController extends Controller
 	// curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 	// $response = curl_exec($ch);
 	// curl_close($ch);
-        
+
         // Process your response here
         echo $response;
 
@@ -694,13 +694,13 @@ class BookingController extends Controller
     //     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
     //     $result = curl_exec($ch); // This is the result from the API
     //     curl_close($ch);
-        
+
     //     // Config variables. Consult http://api.textlocal.in/docs for more info.
     //     $test = "0";
     //     // Data for text message. This is the text message data.
     //     $sender = "hthcin"; // This is who the message appears to be from.
     //    // $message = "Dear $name Your AWB # $consgNumber is Booked and will be delivered by HTHC Courier, to track $track";
-    // //$message = "Dear $name Your shipment is booked. Please see the shipper copy for your reference, $url"; 
+    // //$message = "Dear $name Your shipment is booked. Please see the shipper copy for your reference, $url";
     //    //$message = "Dear $name Your shipment is booked. Please see this shipper copy for your reference, $url";
     //    $message = "Dear $name Your AWB # $consgNumber is Booked and will be delivered by HTHC Courier, to track $track";
     //    $message = urlencode($message);
@@ -724,7 +724,7 @@ class BookingController extends Controller
         $url = 'www.hthc.co.in/booking/acknowledgement/s-'.$consgNumber;
        //  $url = "www.hthc.co.in/booking/acknowledgement/s-HO001-00000291" ;
         // $url = "www.hthc.co.in/track?consg_number=$consgNumber" ;
-          
+
          // Authorisation details.
 	// $username = "hthcblr@gmail.com";
 	// $hash = "629b1a5d3a04dee3363302cbbe4731a57fcc2d90be0c804fc4c750a412588b3c";
@@ -748,54 +748,72 @@ class BookingController extends Controller
 	$result = curl_exec($ch); // This is the result from the API
     curl_close($ch);
     */
-          
+
     }
-        
+
 
     /**
      * Show the form for editing the specified resource.
      *
      * @param  int  $id
-     * @return \Illuminate\Http\Response
+     * @return \Illuminate\Contracts\Foundation\Application|\Illuminate\Contracts\View\Factory|\Illuminate\Contracts\View\View
      */
     public function edit(Request $request, $id)
     {
         $booking = Booking::find($id);
 
         if (!$booking) {
-            return redirect(route('bookings.index'))->withSuccess('Booking Id, not found!');
+            return redirect(route('bookings.index'))->withSuccess('Booking Id not found!');
         }
 
         $subscriptions = Subscription::select(['id', 'name', 'price'])->where('consg_type', '=', $booking->consg_type)->get();
-        $subscriptionLists = array();
+        $subscriptionLists = [];
         foreach ($subscriptions as $subscription) {
-            $selected = '';
-            if ($booking->subscription_id == $subscription->id ) {
-                $selected = 'selected';
-            }
+            $selected = $booking->subscription_id == $subscription->id ? 'selected' : '';
             $subscriptionLists[] = '<option value="'.$subscription->id.'"'.$selected.'>'.$subscription->name.'</option>';
         }
 
         $user = User::select(['id', 'username', 'first_name', 'last_name'])->where('id', '=', $booking->booking_user_id)->first();
-        $delivery = Delivery::where('booking_id', $booking->id)->first();
-        $senderCountryId = Country::where('id', $booking->country_id)->pluck('id');
-        $senderCountryList = AppHelper::countriesOptionList($senderCountryId[0]);
-        $receiverCountryId = Country::where('id', $delivery->country_id)->pluck('id');
+        if (!$user) {
+            $user = [
+                'id' => '',
+                'username' => 'Unknown',
+                'first_name' => '',
+                'last_name' => ''
+            ];
+        }
 
-        $receiverCountryList = AppHelper::countriesOptionList($receiverCountryId[0]);
+        $delivery = Delivery::where('booking_id', $booking->id)->first();
+
+        $senderCountryId = Country::where('id', $booking->country_id)->pluck('id')->first();
+        $senderCountryList = AppHelper::countriesOptionList($senderCountryId ?? null);
+
+        $receiverCountryList = [];
+        if ($delivery) {
+            $receiverCountryId = Country::where('id', $delivery->country_id)->pluck('id')->first();
+            $receiverCountryList = AppHelper::countriesOptionList($receiverCountryId ?? null);
+        }
+
         $logedInUser = Auth::user();
         $segment = $request->segment(2);
         $module = Module::where('name', '=', $segment)->first();
-        $roles = $logedInUser->roles;
         $deletePermission = null;
-        foreach ($roles as $role) {
-            if ($role->hasDeletePermission($module->id)) {
-                $deletePermission = 1;
+
+        if ($module) {
+            foreach ($logedInUser->roles as $role) {
+                if ($role->hasDeletePermission($module->id)) {
+                    $deletePermission = 1;
+                }
             }
         }
 
-        return view('bookings.edit', compact(['delivery', 'booking', 'subscriptionLists', 'senderCountryList', 'receiverCountryList', 'user', 'deletePermission']));
+        return view('bookings.edit', compact([
+            'delivery', 'booking', 'subscriptionLists',
+            'senderCountryList', 'receiverCountryList', 'user',
+            'deletePermission'
+        ]));
     }
+
 
     /**
      * Update the specified resource in storage.
@@ -842,7 +860,7 @@ class BookingController extends Controller
             'booked_amount' => 'nullable',
             'risk_covered' => 'nullable',
             'declared_consg_value' => 'required_if:risk_covered,1',
-            'remarks' => 'nullable' 
+            'remarks' => 'nullable'
         ];
 
 
@@ -871,7 +889,7 @@ class BookingController extends Controller
                 //         $fail('Can not book this '.$attribute . '. It was generated to different Office');
                 //     }
                 // }
-                
+
             }]
         ]);
 
@@ -944,11 +962,11 @@ class BookingController extends Controller
         if ($booking->sms_to_receiver == 1 && $delivery->mobile_number) {
             AppHelper::sendTrackingMessage($delivery->receiver_name, $delivery->mobile_number, $booking->consg_number);
         }
-        
+
         if($booking->mobile_number != ''){
             AppHelper::sendShipperCopy($booking->customer_name, $booking->mobile_number, $booking->consg_number);
         }
-        
+
 
         return redirect(route('bookings.index'))->withSuccess('Booking updated successfully!');
     }
@@ -1102,17 +1120,17 @@ class BookingController extends Controller
 
      public function emailTest(){
 
-        $data = ['message' => 'This is a test!']; 
+        $data = ['message' => 'This is a test!'];
 
         Mail::to('janagiraman@netiapps.com')->send(new TestEmail($data));
-    
+
      }
 
      public function testMail(){
-        $data = ['message' => 'This is a test!']; 
+        $data = ['message' => 'This is a test!'];
 
         Mail::to('janagiraman@netiapps.com')->send(new TestEmail($data));
      }
 
-    
+
 }

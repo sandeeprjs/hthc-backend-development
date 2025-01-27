@@ -1,60 +1,34 @@
-# Use PHP 8.2 with FPM as the base image
-FROM php:8.2-fpm
+FROM php:8.2-fpm-alpine
 
-
-# Install system dependencies and Redis
-RUN apt-get update && apt-get install -y \
-    build-essential \
-    libpng-dev \
-    libjpeg62-turbo-dev \
-    libfreetype6-dev \
-    locales \
-    zip \
-    libzip-dev \
-    jpegoptim optipng pngquant gifsicle \
-    vim \
-    unzip \
-    git \
-    curl \
+# Install system dependencies and PHP extensions
+RUN apk add --no-cache \
     nginx \
-    libonig-dev \
-    supervisor \
-    && apt-get clean && rm -rf /var/lib/apt/lists/*
+    wget \
+    libpng-dev \
+    libjpeg-turbo-dev \
+    freetype-dev \
+    libsodium-dev \
+    # Configure and install GD extension
+    && docker-php-ext-configure gd --with-freetype --with-jpeg \
+    && docker-php-ext-install -j$(nproc) gd \
+    # Install Sodium extension
+    && docker-php-ext-install sodium
 
-# Install PHP extensions, including gd, zip, and redis
-RUN docker-php-ext-configure gd --with-freetype --with-jpeg \
-    && docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath gd zip \
-    && pecl install redis \
-    && docker-php-ext-enable redis
+RUN mkdir -p /run/nginx
+
+COPY docker/nginx.conf /etc/nginx/nginx.conf
+
+RUN mkdir -p /app
+COPY . /app
 
 # Install Composer
-COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
+RUN wget -O /usr/local/bin/composer https://getcomposer.org/composer.phar \
+    && chmod +x /usr/local/bin/composer
 
-# Set working directory
-WORKDIR /var/www/html
+# Install PHP dependencies
+RUN cd /app && \
+    /usr/local/bin/composer install --no-dev
 
-# Copy application files
-COPY . /var/www/html
+RUN chown -R www-data: /app
 
-# Ensure storage and cache directories exist and set permissions
-RUN mkdir -p storage/framework/sessions storage/framework/views storage/framework/cache bootstrap/cache \
-    && chown -R www-data:www-data storage bootstrap/cache \
-    && chmod -R 775 storage bootstrap/cache
-
-# Install Laravel dependencies
-RUN composer install --optimize-autoloader --no-dev
-
-# Generate application key
-RUN php artisan key:generate
-
-# Copy Nginx configuration file
-COPY nginx.conf /etc/nginx/nginx.conf
-
-# Copy Supervisord configuration
-COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
-
-# Expose port 8080
-EXPOSE 8080
-
-# Start Supervisord
-CMD ["/usr/bin/supervisord"]
+CMD sh /app/docker/startup.sh

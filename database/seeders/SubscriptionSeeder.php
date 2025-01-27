@@ -9,19 +9,23 @@ class SubscriptionSeeder extends Seeder
 {
     public function run()
     {
-        $subscriptions = [
-            ['name' => 'Standard Delivery', 'price' => 50],
-            ['name' => 'Express Delivery', 'price' => 100],
-            ['name' => 'Overnight Delivery', 'price' => 150],
-        ];
-
-        foreach ($subscriptions as $data) {
-            Subscription::updateOrCreate(
-                ['name' => $data['name']],
-                [
-                    'price' => $data['price'],
-                ]
-            );
-        }
+        Subscription::insert([
+            [
+                'name' => 'Basic Plan',
+                'consg_type' => 'Standard',
+                'price' => '500',
+                'max_delivery_time' => '3 days',
+                'created_at' => now(),
+                'updated_at' => now()
+            ],
+            [
+                'name' => 'Premium Plan',
+                'consg_type' => 'Express',
+                'price' => '1000',
+                'max_delivery_time' => '1 day',
+                'created_at' => now(),
+                'updated_at' => now()
+            ]
+        ]);
     }
 }

@@ -1,0 +1,28 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        
+      {
+        "name": "Listen for Xdebug",
+        "type": "php",
+        "request": "launch",
+        "port": 9003,
+        "pathMappings": {
+          "/var/www/html": "${workspaceFolder}"
+        },
+        "log": true,
+        "ignore": ["**/vendor/**/*.php"]
+      },
+      {
+        "name": "Laravel Artisan Serve",
+        "type": "php",
+        "request": "launch",
+        "program": "${workspaceFolder}/artisan",
+        "args": ["serve"],
+        "cwd": "${workspaceFolder}",
+        "runtimeExecutable": "php",
+        "port": 8000
+      }
+    ]
+  }
+  

@@ -1,67 +1,27 @@
-{
-    "name": "laravel/laravel1",
-    "type": "project",
-    "description": "The Laravel Framework.",
-    "keywords": [
-        "framework",
-        "laravel"
-    ],
-    "license": "MIT",
-    "require": {
-        "php": "^8.0",
-        "consoletvs/charts": "6.*",
-        "fideloper/proxy": "^4.0",
-        "guzzlehttp/guzzle": "^7.0",
-        "laravel/framework": "^8.0",
-        "laravel/passport": "^10.0",
-        "laravel/tinker": "^2.5",
-        "laravel/ui": "^3.0",
-        "maatwebsite/excel": "^3.1",
-        "milon/barcode": "^8.0"
-    },
-    "require-dev": {
-        "facade/ignition": "^2.5",
-        "fakerphp/faker": "^1.9.1",
-        "mockery/mockery": "^1.4",
-        "nunomaduro/collision": "^5.0",
-        "phpunit/phpunit": "^9.0"
-    },
-    "config": {
-        "optimize-autoloader": true,
-        "preferred-install": "dist",
-        "sort-packages": true
-    },
-    "extra": {
-        "laravel": {
-            "dont-discover": []
-        }
-    },
-    "autoload": {
-        "psr-4": {
-            "App\\": "app/"
-        },
-        "classmap": [
-            "database/seeders",
-            "database/factories"
-        ]
-    },
-    "autoload-dev": {
-        "psr-4": {
-            "Tests\\": "tests/"
-        }
-    },
-    "minimum-stability": "dev",
-    "prefer-stable": true,
-    "scripts": {
-        "post-autoload-dump": [
-            "Illuminate\\Foundation\\ComposerScripts::postAutoloadDump",
-            "@php artisan package:discover --ansi"
-        ],
-        "post-root-package-install": [
-            "@php -r \"file_exists('.env') || copy('.env.example', '.env');\""
-        ],
-        "post-create-project-cmd": [
-            "@php artisan key:generate --ansi"
-        ]
-    }
-}
+FROM php:8.4-fpm-alpine
+
+RUN apk add --no-cache \
+nginx \
+postgresql-dev \
+libpng-dev \
+libjpeg-turbo-dev \
+freetype-dev \
+libzip-dev \
+&& docker-php-ext-configure gd --with-freetype --with-jpeg \
+&& docker-php-ext-install -j$(nproc) gd pdo pdo_pgsql zip
+
+COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
+
+WORKDIR /app
+COPY . .
+RUN composer install --no-dev --optimize-autoloader
+
+COPY nginx.conf /etc/nginx/nginx.conf
+COPY startup.sh /startup.sh
+RUN chmod +x /startup.sh
+
+RUN chown -R www-data:www-data /app
+
+EXPOSE 8080
+
+CMD ["/startup.sh"]

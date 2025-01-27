@@ -2,52 +2,44 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Seeder;
 use App\User;
-use Illuminate\Support\Facades\Hash;
+use Illuminate\Database\Seeder;
 
 class UsersTableSeeder extends Seeder
 {
-    /**
-     * Run the database seeds.
-     *
-     * @return void
-     */
     public function run()
     {
-        $users = [
+        User::insert([
             [
+                'username' => 'admin',
+                'first_name' => 'System',
+                'last_name' => 'Admin',
+                'email' => 'admin@example.com',
+                'password' => bcrypt('password'),
+                'user_type' => 'Admin',
+                'created_at' => now(),
+                'updated_at' => now()
+            ],
+            [
+                'username' => 'john_doe',
                 'first_name' => 'John',
                 'last_name' => 'Doe',
-                'email' => 'johndoe@example.com',
-                'password' => Hash::make('password123'),
-                'username' => 'johndoe',
-                'office_type' => 'HO',
-                'office_id' => 1,
+                'email' => 'john.doe@example.com',
+                'password' => bcrypt('password123'),
+                'user_type' => 'User',
+                'created_at' => now(),
+                'updated_at' => now()
             ],
             [
+                'username' => 'jane_doe',
                 'first_name' => 'Jane',
-                'last_name' => 'Smith',
-                'email' => 'janesmith@example.com',
-                'password' => Hash::make('password123'),
-                'username' => 'janesmith',
-                'office_type' => 'Branch',
-                'office_id' => 2,
-            ],
-        ];
-
-        foreach ($users as $userData) {
-            User::updateOrCreate(
-                ['email' => $userData['email']],
-                [
-                    'first_name' => $userData['first_name'],
-                    'last_name' => $userData['last_name'],
-                    'password' => $userData['password'],
-                    'username' => $userData['username'],
-                    'office_type' => $userData['office_type'],
-                    'office_id' => $userData['office_id'],
-                ]
-            );
-        }
+                'last_name' => 'Doe',
+                'email' => 'jane.doe@example.com',
+                'password' => bcrypt('password123'),
+                'user_type' => 'User',
+                'created_at' => now(),
+                'updated_at' => now()
+            ]
+        ]);
     }
 }

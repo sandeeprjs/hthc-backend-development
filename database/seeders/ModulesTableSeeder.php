@@ -50,7 +50,6 @@ class ModulesTableSeeder extends Seeder
                         'description' => null,
                         'active' => 0,
                         'icon' => null,
-                        'group' => null,
                     ],
                     [
                         'name' => 'outgoing',
@@ -58,23 +57,22 @@ class ModulesTableSeeder extends Seeder
                         'description' => null,
                         'active' => 0,
                         'icon' => null,
-                        'group' => null,
                     ]
                 ],
             ],
-            // Additional module entries here...
         ];
 
         foreach ($modules as $moduleData) {
+            // Ensure required fields are present
             $parentModule = Module::updateOrCreate(
                 ['path' => $moduleData['path']],
                 [
-                    'name' => $moduleData['name'],
-                    'type' => $moduleData['type'],
-                    'description' => $moduleData['description'],
-                    'parent_id' => $moduleData['parent_id'],
-                    'active' => $moduleData['active'],
-                    'icon' => $moduleData['icon']
+                    'name' => $moduleData['name'] ?? 'Unnamed Module',
+                    'type' => $moduleData['type'] ?? null,
+                    'description' => $moduleData['description'] ?? null,
+                    'parent_id' => $moduleData['parent_id'] ?? null,
+                    'active' => $moduleData['active'] ?? 0,
+                    'icon' => $moduleData['icon'] ?? null,
                 ]
             );
 
@@ -83,11 +81,11 @@ class ModulesTableSeeder extends Seeder
                     $parentModule->children()->updateOrCreate(
                         ['path' => $childData['path']],
                         [
-                            'name' => $childData['name'],
-                            'description' => $childData['description'],
+                            'name' => $childData['name'] ?? 'Unnamed Child Module',
+                            'description' => $childData['description'] ?? null,
                             'parent_id' => $parentModule->id,
-                            'active' => $childData['active'],
-                            'icon' => $childData['icon']
+                            'active' => $childData['active'] ?? 0,
+                            'icon' => $childData['icon'] ?? null,
                         ]
                     );
                 }

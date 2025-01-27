@@ -52,42 +52,43 @@ class AppHelper
      * @param $sheetQuantity
      * @return array
      */
-    public static function generateBarcode($officeType, $officeId, $sheetQuantity)
-    {
-        $quantity = $sheetQuantity*48;  //one sheet contains 12*4 = 48 bar-codes.
+    public static function generateBarcode($officeType, $officeId, $batchNumber, $quantity) {
         if ($officeType == 'FR') {
             $office = Franchisee::select(['id', 'code'])->where('id', '=', $officeId)->first();
         } else {
-            $office = Branch::select(['id', 'code'])->where('branch_type', '=', $officeType)->where('id', '=', $officeId)->first();
+            $office = Branch::select(['id', 'code'])->where('id', '=', $officeId)->first();
         }
 
-        $consignment = Consignment::where('office_type', '=', $officeType)->where('office_id', '=', $officeId)->latest('id')->first();
-        $batch = Consignment::select(['batch_id'])->latest('id')->first();
-        if ($batch) {
-            $batchNumber = ++$batch->batch_id;
-        } else {
-            $batchNumber = 1;
-        }
-        if ($consignment) {
-            $lastConsgNum = $consignment->consg_number;
-            $consgNum = preg_split('[-]', $lastConsgNum);
-            $number = $consgNum[1]+1;
+        $existingBatch = Consignment::where('batch_id', $batchNumber)->max('consg_number');
+        if ($existingBatch) {
+            $number = explode('-', $existingBatch)[1];
+            $number++;
         } else {
             $number = '1';
         }
+
         $i = 1;
         $barCodes = array();
+        $barcodeGenerator = new DNS1D(); // Create an instance of DNS1D
 
         while ($i <= $quantity) {
-            $consgNumber = str_pad($number, 8, 0, 0);
+            $consgNumber = str_pad($number, 8, 0, STR_PAD_LEFT);
             $consignment = new Consignment();
-            $consignment->consg_number = $office->code.'-'.$consgNumber;
+            $consignment->consg_number = $office->code . '-' . $consgNumber;
             $consignment->office_type = $officeType;
             $consignment->office_id = $officeId;
             $consignment->batch_id = $batchNumber;
             $consignment->save();
 
-            $barCodes[] = DNS1D::getBarcodePNG($office->code.'-'.$consgNumber, "C128",1,50,array(1,1,1), true);
+            // Generate barcode
+            $barCodes[] = $barcodeGenerator->getBarcodePNG(
+                $office->code . '-' . $consgNumber,
+                "C128",
+                1,
+                50,
+                [1, 1, 1],
+                true
+            );
             $i++;
             $number++;
         }
@@ -99,16 +100,16 @@ class AppHelper
      * Used for bulk booking
      */
     public static function generateSingleConsignment($officeType, $officeId, $batchId = null) {
-       
+
         if ($officeType == 'FR') {
             $office = Franchisee::select(['id', 'code'])->where('id', '=', $officeId)->first();
         } else {
             $office = Branch::select(['id', 'code'])->where('branch_type', '=', $officeType)->where('id', '=', $officeId)->first();
-           
+
         }
 
         $consignment = Consignment::where('office_type', '=', $officeType)->where('office_id', '=', $officeId)->latest('id')->first();
-      
+
         if (!$batchId) {
             $batch = Consignment::select(['batch_id'])->latest('id')->first();
             if ($batch) {
@@ -137,15 +138,15 @@ class AppHelper
             $consignment->save();
         //}
         // else{
-          
+
         //     $consignment->consg_number = $office->code.'-'.$consgNumber;
         //     $consignment->office_type = $officeType;
         //     $consignment->office_id = $officeId;
         //     $consignment->batch_id = $batchId;
         // }
-        
+
         return $consignment;
-        
+
     }
 
     public static function menuItems() {
@@ -174,10 +175,10 @@ class AppHelper
             $url = "www.hthc.co.in/track";
             $message = "Dear $CustomerName, your AWB # $AWB is booked and will be delivered by HTHC Courier, to track $url";
             $numbers = implode(',', $numbers);
-        
+
             // Prepare data for POST request
             $data = array('apikey' => $apiKey, 'numbers' => $numbers, "sender" => $sender, "message" => $message);
-        
+
             // Send the POST request with cURL
             $ch = curl_init('https://api.textlocal.in/send/');
             curl_setopt($ch, CURLOPT_POST, true);
@@ -185,7 +186,7 @@ class AppHelper
             curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
             $response = curl_exec($ch);
             curl_close($ch);
-         
+
         } else {
             throw new \Exception("Mobile number not available", Response::HTTP_PRECONDITION_FAILED);
         }
@@ -200,13 +201,13 @@ class AppHelper
             $numbers = array($mobileNumbers);
             $sender = urlencode('hthcin');
             $url = "hthc.co.in/sp/s-".$consgNumber;
-           
+
             $message = "Dear $CustomerName, Your shipment is booked with HTHC Courier. Please check the shipper copy $url";
             $numbers = implode(',', $numbers);
-        
+
             // Prepare data for POST request
             $data = array('apikey' => $apiKey, 'numbers' => $numbers, "sender" => $sender, "message" => $message);
-        
+
             // Send the POST request with cURL
             $ch = curl_init('https://api.textlocal.in/send/');
             curl_setopt($ch, CURLOPT_POST, true);
@@ -214,7 +215,7 @@ class AppHelper
             curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
             $response = curl_exec($ch);
             curl_close($ch);
-           
+
         } else {
             throw new \Exception("Mobile number not available", Response::HTTP_PRECONDITION_FAILED);
         }
@@ -262,10 +263,10 @@ class AppHelper
             $sender = urlencode('hthcin');
             $message = "Dear $Name. Your consignment AWB # $consgNumber has been successfully delivered by HTHC Courier.";
             $numbers = implode(',', $numbers);
-        
+
             // Prepare data for POST request
             $data = array('apikey' => $apiKey, 'numbers' => $numbers, "sender" => $sender, "message" => $message);
-        
+
             // Send the POST request with cURL
             $ch = curl_init('https://api.textlocal.in/send/');
             curl_setopt($ch, CURLOPT_POST, true);
@@ -277,7 +278,7 @@ class AppHelper
             // $username =  env('TEXTLOCAL_USERNAME');
             // $hash =  env('TEXTLOCAL_HASH');
             // $AWB = $consgNumber;
-            
+
             // // Config variables. Consult http://api.textlocal.in/docs for more info.
             // $test = "0";
             // // Data for text message. This is the text message data.

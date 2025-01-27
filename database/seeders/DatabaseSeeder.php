@@ -15,18 +15,20 @@ class DatabaseSeeder extends Seeder
     {
         $this->call([
             AdminSeeder::class,
-            BranchesTableSeeder::class,
+            RolesTableSeeder::class,
+            ModulesTableSeeder::class,
             CountriesTableSeeder::class,
-            FranchiseeSeeder::class,
             PincodeSeeder::class,
+            BranchesTableSeeder::class,
+            UsersTableSeeder::class,
+            FranchiseeSeeder::class,
             CustomerSeeder::class,
             SubscriptionSeeder::class,
             BookingSeeder::class,
             DeliverySeeder::class,
             ConsignmentSeeder::class,
-            ModulesTableSeeder::class,
-            RolesTableSeeder::class,
-            UsersTableSeeder::class,
+            ModesTableSeeder::class,
+//            LargeDataSeeder::class,
         ]);
     }
 }

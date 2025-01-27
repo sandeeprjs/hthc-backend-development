@@ -7,6 +7,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Log;
+
 use App\Manifest;
 use App\Booking;
 use App\Delivery;
@@ -57,7 +59,7 @@ class ManifestController extends Controller
         $manifests = Manifest::where('receiver_id','=', $user->office_id)
                    ->where('receiver_type', '=', $user->office_type)
                    ->where('manifest_type', '=', 'I')->latest('id')->paginate('10');
-       
+
         return view('manifests.incoming',compact('manifests'));
     }
 
@@ -65,6 +67,11 @@ class ManifestController extends Controller
         $user = auth()->user();
         $loggedOffice = $this->loggedInOffice();
         $branchFranchisees = $this->branchFranchisees();
+        Log::info('Incoming Create View Loaded', [
+            'user_id' => $user->id,
+            'office_type' => $user->office_type,
+            'office_id' => $user->office_id,
+        ]);
         return view('manifests.incomingCreate',compact('user','loggedOffice', 'branchFranchisees'));
     }
 
@@ -83,6 +90,11 @@ class ManifestController extends Controller
         $loggedOffice = $this->loggedInOffice();
         $branchFranchisees = $this->branchFranchisees();
         $employees  =  $this->getEmployees($user->office_type, $user->office_id);
+        Log::info('Outgoing Create View Loaded', [
+            'user_id' => $user->id,
+            'office_type' => $user->office_type,
+            'office_id' => $user->office_id,
+        ]);
         return view('manifests.outgoingCreate',compact('user','loggedOffice', 'branchFranchisees','employees'));
     }
 
@@ -90,152 +102,136 @@ class ManifestController extends Controller
      * Store a newly created resource in storage.
      *
      * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
+     * @return \Illuminate\Http\RedirectResponse
      * @todo- @Janagiraman need to rework
      */
     public function store(Request $request)
     {
-        //
 
         $data = $request->all();
-        $manifest_numbers = $data['manifest_number'];
-      
-        // echo '<pre>';
-        // print_r($data);
-        // exit;
-        $manifest_type = $data['manifest_type'];
-        if($manifest_numbers){ 
-            
-        foreach($manifest_numbers as $key => $manifest_number){
 
-        $delivery_user_id = null;
-        $last_mile_delivery = 0;
-        $customer_view = 0;
-       
+        Log::info('Manifest store data:', $request->all());
+        // Ensure `manifest_number` is an array
+        if (!isset($data['manifest_number']) || !is_array($data['manifest_number'])) {
+            return redirect()->back()->withErrors(['manifest_number' => 'Please provide at least one Consignment Number.']);
+        }
 
-        $status = $this->getManifestStatus($manifest_number,$data['manifest_type']);
-        // if($request->input('last_mile_delivery')){
-        //    $last_mile_delivery =  $request->input('last_mile_delivery');
-        //    $data['receiver_id'] =  $request->input('sender_id');
-        //    $delivery_user_id = $data['delivery_user_id'];
-        //    $status = 'Arrived to Destination Hub';
-        // }
         $user = auth()->user();
+        try {
+            foreach ($data['manifest_number'] as $key => $manifest_number) {
+                Log::info('Inside Manifest store data:', $data['manifest_number']);
+                // Fetch booking data based on consignment number
+                $booking = Booking::where('consg_number', $manifest_number)->first();
 
-        if($request->input('customer_view')){
-            $customer_view = $request->input('customer_view');
-        }
-        if($manifest_type == 'I'){
-
-            $destBranchId = $this->getDestBranchId($manifest_number);
-            $receiver_id = $user->office_id;
-            $receiver_type = $user->office_type;
-            $officeDetails = $this->getOfficeDetails($data['sender_id']);
-            if($officeDetails){
-                $sender_id   = $officeDetails->id;
-                $sender_type = $officeDetails->office_type;
-            }
-            if($destBranchId == $receiver_id){
-                if($status != "Booked & Dispatched"){
-                     $status = 'Arrived to Destination Hub';
+                if (!$booking) {
+                    return redirect()->back()->withErrors([
+                        "manifest_number.{$key}" => "No booking found for consignment number: {$manifest_number}."
+                    ])->withInput();
                 }
-            }
-            $customer_view = 1;
-        }
-        if($manifest_type == 'O'){
 
-            $officeDetails = $this->getOfficeDetails($data['receiver_id']);
+                $status = $this->getManifestStatus($manifest_number, $data['manifest_type']);
+                $delivery_user_id = null;
+                $last_mile_delivery = 0;
+                $customer_view = isset($data['customer_view']) ? 1 : 0;
 
-            $sender_id = $user->office_id;;
-            $sender_type = $user->office_type;
-            if($officeDetails){
-                $receiver_id = $officeDetails->id;
-                $receiver_type = $officeDetails->office_type;
-            }
-            if($sender_id == $receiver_id && $sender_type == $receiver_type){
-                $status = 'Arrived to Destination Hub';
-                $delivery_user_id = 1;
-                $last_mile_delivery = 1 ;
-                $customer_view = 1;
-                $this->updateStatusOfIncomingManifest($manifest_number,$sender_id);
-            }
-        }
+                if ($data['manifest_type'] === 'I') {
+                    $destBranchId = $this->getDestBranchId($manifest_number);
+                    $receiver_id = $user->office_id;
+                    $receiver_type = $user->office_type;
 
-        $rules = [
+                    // Validate sender details
+                    $officeDetails = $this->getOfficeDetails($data['sender_id']);
+                    if (!$officeDetails) {
+                        Log::info('office details:', $officeDetails->office_type);
+
+                        return redirect()->back()->withErrors(['sender_id' => 'Invalid sender details.']);
+                    }
+
+                    $sender_id = $officeDetails->id;
+                    $sender_type = $officeDetails->office_type;
+
+                    // Adjust status if destination matches receiver
+                    if ($destBranchId == $receiver_id && $status !== "Booked & Dispatched") {
+                        Log::info('Arrived office details:', ['destBranchId' => $destBranchId]);
+                        $status = 'Arrived to Destination Hub';
+                    }
+
+                }
+
+                if ($data['manifest_type'] === 'O') {
+                    $officeDetails = $this->getOfficeDetails($data['receiver_id']);
+                    if (!$officeDetails) {
+                        return redirect()->back()->withErrors(['receiver_id' => 'Invalid receiver details.']);
+                    }
+
+                    $sender_id = $user->office_id;
+                    $sender_type = $user->office_type;
+                    $receiver_id = $officeDetails->id;
+                    $receiver_type = $officeDetails->office_type;
+
+                    if ($sender_id == $receiver_id && $sender_type == $receiver_type) {
+                        $status = 'Arrived to Destination Hub';
+                        $delivery_user_id = 1;
+                        $last_mile_delivery = 1;
+                        $customer_view = 1;
+                        $this->updateStatusOfIncomingManifest($manifest_number, $sender_id);
+                    }
+                }
+
+                // Populate missing fields from the booking
+                $data['origin_branch_id'][$key] = $booking->origin_office_id ?? null;
+                $data['dest_branch_id'][$key] = $booking->dest_branch_id ?? null;
+
+                // Validate each manifest
+                $validator = Validator::make($data, [
+                    "manifest_number.{$key}" => 'required',
+                    "origin_branch_id.{$key}" => 'required',
+                    "dest_branch_id.{$key}" => 'required',
                     'manifest_type' => 'required',
-                    'manifest_number' => 'required',
-                    'origin_branch_id' => 'required',
-                    'dest_branch_id' => 'required',
                     'sender_id' => 'required',
                     'receiver_id' => 'required_if:last_mile_delivery,0',
-                    'sender_type'=>'nullable',
-                    'receiver_type'=>'nullable',
-        ];
-        $messages = [
-            'active_url' => 'The selected :attribute is invalid.',
-        ];
-        if(!$officeDetails && $manifest_type == 'I'){
-            $rules = [
-                'sender_id' => 'active_url'
-            ];
-        }
-        $validator = Validator::make($request->all(),$rules, $messages);
-        $validator->validate();
-      /// echo $data['origin_pincode_id'][$key];exit;
-        $manifest = Manifest::create([
-            'manifest_type' => $data['manifest_type'],
-            'manifest_number' => $manifest_number,
-            'origin_branch_id' => $data['origin_branch_id'][$key],
-            // 'origin_pincode_id' => $data['origin_pincode_id'][$key],
-            'dest_branch_id' => $data['dest_branch_id'][$key],
-            // 'dest_pincode_id' => $data['dest_pincode_id'][$key],
-            'sender_id' => $sender_id,
-            'receiver_id' => $receiver_id,
-            'sender_type' => $sender_type,
-            'receiver_type' => $receiver_type,
-            'consg_number_id' => 0,
-            'last_mile_delivery' => $last_mile_delivery,
-            'delivery_user_id' => $delivery_user_id,
-            'customer_view' => $customer_view,
-            'status' => $status,
-            'user_id' => $user->id,
-            'office_id' => $user->office_id,
-            'office_type' => $user->office_type,
-           // 'remarks' => $data['remarks']
-           'remarks' =>''
-        ]);
-      
+                ]);
 
-            if($customer_view == 0){
-                Manifest::where('id', '=', $manifest->id)->update(array('customer_view' => $customer_view));
-            }
-            if($manifest){
-
-                $status = 'In Transit';
-                if($delivery_user_id != null){
-                    $status = 'Arrived to Destination Hub';
+                if ($validator->fails()) {
+                    Log::info('validation error',$validator->attributes());
+                    return redirect()->back()->withErrors($validator)->withInput();
                 }
-                Booking::where('consg_number', $manifest_number)->update(array('status' => $status));
+
+                // Save Manifest
+                $manifest = Manifest::create([
+                    'manifest_type' => $data['manifest_type'],
+                    'manifest_number' => $manifest_number,
+                    'origin_branch_id' => $data['origin_branch_id'][$key],
+                    'dest_branch_id' => $data['dest_branch_id'][$key],
+                    'sender_id' => $sender_id,
+                    'receiver_id' => $receiver_id,
+                    'sender_type' => $sender_type,
+                    'receiver_type' => $receiver_type,
+                    'last_mile_delivery' => $last_mile_delivery,
+                    'delivery_user_id' => $delivery_user_id,
+                    'customer_view' => $customer_view,
+                    'status' => $status,
+                    'user_id' => $user->id,
+                    'office_id' => $user->office_id,
+                    'office_type' => $user->office_type,
+                    'remarks' => $data['remarks'] ?? '',
+                ]);
+
+                // Update Booking status
+                Booking::where('consg_number', $manifest_number)->update(['status' => $status]);
             }
-        }
-        if($manifest_type == 'I'){ 
-            return redirect()->route('manifests.incoming.create')->with('success', 'Manifest has been added successfully');
-        }
-        if($manifest_type == 'O'){
-            return redirect()->route('manifests.outgoing.create')->with('success', 'Manifest has been added successfully');
+            $redirectRoute = $data['manifest_type'] === 'I' ? 'manifests.incoming.create' : 'manifests.outgoing.create';
+            return redirect()->route($redirectRoute)->with('success', 'Manifest(s) added successfully.');
+        } catch (\Exception $e) {
+            Log::error($e->getMessage());
+            return redirect()->route('manifests.incoming.create')
+                ->with('error', 'An error occurred while saving manifests: ' . $e->getMessage());
         }
     }
-    if($manifest_type == 'I'){
-        return redirect()->route('manifests.incoming.create');
-    }
-    if($manifest_type == 'O'){
-        return redirect()->route('manifests.outgoing.create');
-    }
-} 
 
     /** To get destination branch details using consignment number */
     public function getDestBranchId($consg_number){
-        
+
             $booking = Booking::where('consg_number', $consg_number )->first();
             if($booking){
                 return $booking->dest_branch_id;
@@ -396,103 +392,94 @@ class ManifestController extends Controller
 
     }
 
-    public function bookingDetails(Request $request,Booking $booking){
+    public function bookingDetails(Request $request, Booking $booking): \Illuminate\Http\JsonResponse
+    {
+        $manifestNumber = $request->input('manifest_number');
+        $manifestType = $request->input('manifest_type');
 
-        $sender_branch = null;
-        $sender_office_type = null;
-        if($request->manifest_type == "O"){
-           $incoming =  $this->checkIncomingOrNot($request->manifest_number);
-
-           if(!$incoming){
-                return response()->json([
-                    'status' => 'failed',
-                    'message' => 'There is no incoming manifest for this consignment number',
-                ], 200);
-           }
+        if (!$manifestNumber || !$manifestType) {
+            return response()->json([
+                'status' => 'failed',
+                'message' => 'Manifest number and type are required.',
+            ], 400);
         }
 
-       $isManifestExists = $this->checkIsManifestExists($request->manifest_type, $request->manifest_number);
+        $senderBranch = null;
+        $senderOfficeType = null;
 
-       if(!$isManifestExists){
+        // Check if it's outgoing and validate if incoming is required
+        if ($manifestType == "O") {
+            $booking = Booking::where('consg_number', $manifestNumber)->first();
 
-            $manifest = $this->getManifestDetails($request->manifest_number, $request->manifest_type);
-            
-            if($manifest){
-                $dest_branch_id = $manifest->dest_branch_id;
-                $origin_branch_id = $manifest->origin_branch_id;
-
-                if($request->manifest_type == "I"){
-
-                    if($manifest->sender_type == 'FR'){
-                        $sender_branch = $manifest->sender_franchisee->code;
-                        $sender_office_type = $manifest->sender_type;
-                     }
-                     if($manifest->sender_type == "BR" || $manifest->sender_type == "HO"){
-                        $sender_branch = $manifest->sender_branch->code;
-                        $sender_office_type = $manifest->sender_type;
-                     }
-                }
-
-                if($request->manifest_type == "O"){
-                     $sender_branch = $manifest->sender_branch;
-                     $sender_office_type = $manifest->sender_type;
-                }
+            if (!$booking) {
+                return response()->json([
+                    'status' => 'failed',
+                    'message' => 'There is no booking entry for this consignment number.',
+                ], 404);
             }
 
-            if(!$manifest) {
-                
-                $bookings = Booking::where('consg_number','=' , $request->manifest_number)->first()
-                ->append(['booking_branch','booking_franchisee']);
+            // Check if the current branch matches the booking's origin branch
+            $currentBranchId = auth()->user()->office_id;
+            if ($currentBranchId !== $booking->origin_office_id) {
+                // Require an incoming manifest if the consignment is already moved
+                $incoming = $this->checkIncomingOrNot($manifestNumber);
 
-                $delivery =  Delivery::where('booking_id', '=', $bookings->id)->first();
-              
-                if($bookings){
-
-                            $dest_branch_id = $bookings->dest_branch_id;
-                            $origin_branch_id = $bookings->origin_office_id;
-                            // $origin_pincode_id = $bookings->pincode_id;
-                            // $dest_pincode_id = $delivery->pincode_id;
-                            $sender_office_type = $bookings->origin_office_type;
-
-                            if($bookings->origin_office_type == 'HO' || $bookings->origin_office_type == 'BR'){
-                                    $sender_branch   = $bookings->booking_branch;
-                            }
-                            if($bookings->origin_office_type == 'FR'){
-                                    $sender_branch   = $bookings->booking_franchisee;
-
-                            }
-                }else{
+                if (!$incoming) {
                     return response()->json([
                         'status' => 'failed',
-                        'message' => 'There is no booking entry for this consignment number',
-                    ], 200);
+                        'message' => 'There is no incoming manifest for this consignment number.',
+                    ], 404);
                 }
-
             }
+        }
+
+        $isManifestExists = $this->checkIsManifestExists($manifestType, $manifestNumber);
+
+        if (!$isManifestExists) {
+            $booking = Booking::where('consg_number', $manifestNumber)->first();
+
+            if (!$booking) {
+                return response()->json([
+                    'status' => 'failed',
+                    'message' => 'There is no booking entry for this consignment number.',
+                ], 404);
+            }
+
+            $destBranchId = $booking->dest_branch_id;
+            $originBranchId = $booking->origin_office_id;
+            $senderOfficeType = $booking->origin_office_type;
+
+            // Fetch the branch codes based on IDs
+            $originBranchCode = Branch::find($originBranchId)->code ?? 'N/A';
+            $destBranchCode = Branch::find($destBranchId)->code ?? 'N/A';
+
+            $senderBranch = $booking->origin_office_type === 'FR'
+                ? $booking->booking_franchisee
+                : $booking->booking_branch;
+
             return response()->json([
                 'status' => 'success',
-                'origin_branch_id' => $origin_branch_id,
-                'dest_branch_id' => $dest_branch_id,
-                'booking_office_code' => $sender_branch,
-                'booking_office_type' => $sender_office_type
-                // 'origin_pincode_id' => $origin_pincode_id,
-                // 'dest_pincode_id' => $dest_pincode_id
+                'origin_branch_id' => $originBranchId,
+                'origin_branch_code' => $originBranchCode,
+                'dest_branch_id' => $destBranchId,
+                'dest_branch_code' => $destBranchCode,
+                'booking_office_code' => $senderBranch,
+                'booking_office_type' => $senderOfficeType,
             ], 200);
         }
 
         return response()->json([
             'status' => 'failed',
-            'message' => 'Already Exists this Manifest entry',
-
-        ], 200);
-
-
+            'message' => 'Already exists as a manifest entry.',
+        ], 409);
     }
+
+
 
     public function branchFranchisee(Request $request){
 
         $term = trim($request->q);
-        
+
         $deliveryPartner = ['BOOKING','DELIVERY','BOTH'];
         $franchisees = DB::table("franchisees")
             ->select("franchisees.id","franchisees.code")
@@ -545,8 +532,11 @@ class ManifestController extends Controller
 
     public function getOfficeDetails($br_code){
         $branch = Branch::where('code', '=', $br_code)->first();
+
         if($branch){
+             Log::info($branch);
              $branch['office_type'] = $branch->branch_type;
+             Log::info($branch['office_type']);
              return $branch;
         }
         $franchisee = Franchisee::where('code', '=', $br_code)->first();
@@ -648,7 +638,7 @@ class ManifestController extends Controller
             }else{
                 return false;
             }
-           
+
         }
         return false;
 
@@ -664,7 +654,7 @@ class ManifestController extends Controller
             return $no_of_attempts;
         }
         return '0';
-        
+
     }
 
     public function checkIncomingOrNot($manifest_number){
@@ -749,10 +739,10 @@ class ManifestController extends Controller
             return response()->json([
                 'status' => 'failed',
                 'message' => 'This Consignment Number Already Delivered',
-            ], 200); 
+            ], 200);
         }
 
-        
+
 
         if($request->manifest_type == "RO"){
            $incoming =  $this->checkReturnsIncomingOrNot($request->manifest_number);
@@ -770,7 +760,7 @@ class ManifestController extends Controller
        if(!$isManifestExists){
 
             $manifest = $this->getManifestDetails($request->manifest_number, $request->manifest_type);
-            
+
             if($manifest){
                 $dest_branch_id = $manifest->dest_branch_id;
                 $origin_branch_id = $manifest->origin_branch_id;
@@ -794,12 +784,12 @@ class ManifestController extends Controller
             }
 
             if(!$manifest) {
-                
+
                 $bookings = Booking::where('consg_number','=' , $request->manifest_number)->first()
                 ->append(['booking_branch','booking_franchisee']);
 
                 $delivery =  Delivery::where('booking_id', '=', $bookings->id)->first();
-              
+
                 if($bookings){
 
                             $dest_branch_id = $bookings->dest_branch_id;

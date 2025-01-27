@@ -1,0 +1,60 @@
+version: '3.8'
+
+services:
+#  app:
+#    build:
+#      context: .
+#      dockerfile: Dockerfile
+#    container_name: laravel_app
+#    environment:
+#      - APP_ENV=local
+#      - APP_DEBUG=true
+#      - APP_KEY=${APP_KEY}
+#      - APP_URL=http://localhost
+#      - DB_CONNECTION=mysql
+#      - DB_HOST=db
+#      - DB_PORT=3306
+#      - DB_DATABASE=${DB_DATABASE}
+#      - DB_USERNAME=${DB_USERNAME}
+#      - DB_PASSWORD=${DB_PASSWORD}
+#      - XDEBUG_MODE=debug
+#      - XDEBUG_CONFIG="client_host=host.docker.internal client_port=9003"
+#      - MAIL_MAILER=log
+#    volumes:
+#      - .:/var/www/html
+#    ports:
+#      - "8080:8080"
+#      - "9003:9003" # Expose Xdebug port
+#    depends_on:
+#      - db
+#    networks:
+#      - laravel
+
+
+  db:
+    image: mysql:8.0
+    container_name: laravel_db
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: password  # Root password for MySQL
+      MYSQL_DATABASE: hthcdb          # Name of the database
+      MYSQL_USER: laraveluser            # Non-root user
+      MYSQL_PASSWORD: password
+    ports:
+      - "3306:3306"
+    volumes:
+      - db_data:/var/lib/mysql
+    networks:
+      - laravel
+
+  redis:
+    image: redis:alpine
+    container_name: laravel_redis
+    networks:
+      - laravel
+
+networks:
+  laravel:
+
+volumes:
+  db_data:

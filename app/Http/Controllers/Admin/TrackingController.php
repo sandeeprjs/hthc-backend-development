@@ -28,23 +28,23 @@ class TrackingController extends Controller
 
             $booking  = Booking::where('consg_number', '=', $request->consign_number )->first();
             if($booking){
-              
+
                     $delivery  = Delivery::where('booking_id', '=', $booking->id )->first();
-                
+
                     $bookingOffice =  $this->getOfficeDetails($booking->origin_office_type,$booking->origin_office_id);
-                
-                   
+
+
                     $tracking = Manifest::where('manifest_number', '=', $request->consign_number)
                                 ->where('customer_view', '=', 1)->get();
             }
             if(!$booking){
-                $error = "Tracking Number does not exists"; 
+                $error = "Tracking Number does not exists";
             }
-            
+
         }
-       
+
         return view('tracking.form', compact('tracking','booking', 'delivery', 'bookingOffice','error', 'request'));
-      
+
     }
 
     /**
@@ -54,8 +54,8 @@ class TrackingController extends Controller
      */
     public function create()
     {
-        
-       
+
+
     }
 
     /**

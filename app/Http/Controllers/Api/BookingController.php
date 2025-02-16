@@ -61,7 +61,7 @@ class BookingController extends Controller
                 'origin_office_type' => $request->origin_office_type,
                 'origin_office_id' => $request->origin_office_id,
                 'dest_branch_id' => $destBranch->id,
-                'status' => "Booked & Dispatched",
+                'status' => "Booked",
                 'vol_weight' => $request->vol_weight,
                 'length' => $request->length,
                 'breadth' => $request->breadth,
@@ -134,17 +134,17 @@ class BookingController extends Controller
             );
         }
 
-        if ($booking->email) {
-            Mail::to($booking->email)->send(
-                new ConsignmentBooked($booking, $delivery, 'sender')
-            );
-        }
+//        if ($booking->email) {
+//            Mail::to($booking->email)->send(
+//                new ConsignmentBooked($booking, $delivery, 'sender')
+//            );
+//        }
 
-        if ($delivery->email) {
-            Mail::to($delivery->email)->send(
-                new ConsignmentBooked($booking, $delivery, 'receiver')
-            );
-        }
+//        if ($delivery->email) {
+//            Mail::to($delivery->email)->send(
+//                new ConsignmentBooked($booking, $delivery, 'receiver')
+//            );
+//        }
     }
 
     private function isConsignmentExists($consgNumber)

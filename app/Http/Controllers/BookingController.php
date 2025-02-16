@@ -59,8 +59,9 @@ class BookingController extends Controller
             'bookings' => $bookings,
             'subscriptions' => Subscription::select(['id', 'name'])->get(),
             'customer' => $request->filled('customer_id') ? Customer::find($request->customer_id) : null,
-            'bookingStatuses' => Booking::distinct('status')->pluck('status'),
-        ]);
+            'bookingStatuses' => Booking::select('status')
+                ->whereRaw('updated_at = (SELECT MAX(updated_at) FROM bookings b WHERE b.consg_number = bookings.consg_number)')
+                ->pluck('status'),        ]);
     }
 
     public function create()

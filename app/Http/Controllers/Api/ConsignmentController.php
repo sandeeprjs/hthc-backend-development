@@ -23,40 +23,43 @@ class ConsignmentController extends Controller
      */
     public function index(Request $request)
     {
-       
+
         $user_id = $request->input('logged_user_id');
-        $consignments = Manifest::select('manifests.*')->join('bookings', 'manifests.manifest_number', '=', 'bookings.consg_number')
-        ->where('bookings.status', '=', 'Out for Delivery')
-        ->where('manifests.status', '=', 'Out for Delivery')
-        ->where('manifests.manifest_type', '=', 'D')
-        ->where('manifests.delivery_user_id', '=', $user_id)
-        ->groupBy('manifests.manifest_number')
-        ->get();
-       
-         $response = null;
+        $consignments = Manifest::select('manifests.*')
+            ->leftJoin('bookings', 'manifests.manifest_number', '=', 'bookings.consg_number')
+            ->where('manifests.status', '=', 'Out for Delivery')
+            ->where('manifests.manifest_type', '=', 'D')
+            ->where(function ($query) use ($user_id) {
+                $query->where('manifests.delivery_user_id', '=', $user_id)
+                    ->orWhereNull('manifests.delivery_user_id');
+            })
+            ->groupBy('manifests.manifest_number')
+            ->get();
+
+        $response = null;
          if($consignments){
-           
+
              foreach($consignments as $key => $consignment){
                 $response[$key]['consign_number'] = $consignment->manifest_number;
                 $response[$key]['status'] = $consignment->status;
                 $response[$key]['receiver_name'] = $consignment->booking->delivery->receiver_name;
-                $response[$key]['address'] = $consignment->booking->delivery->add_line_1; 
+                $response[$key]['address'] = $consignment->booking->delivery->add_line_1;
                 $response[$key]['mobile'] = $consignment->booking->delivery->mobile_number;
                 $response[$key]['area'] = $consignment->booking->delivery->add_line_2;
                 $response[$key]['city'] = $consignment->booking->delivery->city;
                 $response[$key]['district'] = $consignment->booking->delivery->district;
                 $response[$key]['state'] = $consignment->booking->delivery->state;
                 if(isset($consignment->booking->delivery->pincode->pincode)){
-                    $response[$key]['pincode'] = $consignment->booking->delivery->pincode->pincode; 
+                    $response[$key]['pincode'] = $consignment->booking->delivery->pincode->pincode;
                 }
                 if(isset($consignment->booking->delivery->phone)){
-                    $response[$key]['landline'] = $consignment->booking->delivery->phone;  
-                } 
-                $response[$key]['manifest_id'] = $consignment->id; 
-                $response[$key]['consignment_date'] = $consignment->created_at->toDateString(); 
-               // $consignments[$key]['pincode'] = $consignment->booking->delivery->pincode->pincode ?? null; 
+                    $response[$key]['landline'] = $consignment->booking->delivery->phone;
+                }
+                $response[$key]['manifest_id'] = $consignment->id;
+                $response[$key]['consignment_date'] = $consignment->created_at->toDateString();
+               // $consignments[$key]['pincode'] = $consignment->booking->delivery->pincode->pincode ?? null;
             }
-         
+
          }
          if($response){
             return response()->json([
@@ -69,12 +72,12 @@ class ConsignmentController extends Controller
             'status' => 0,
             'message' => 'No Consignment Found',
         ], 404);
-         
-        
+
+
     }
 
-    
-    
+
+
     public function indextestone(Request $request)
     {
         $user_id = $request->input('logged_user_id');
@@ -92,19 +95,19 @@ class ConsignmentController extends Controller
         ->where('manifests.delivery_user_id', '=', $user_id)
         ->groupBy('manifests.manifest_number')
         ->get();
-       
+
          $response = null;
          if($consignments){
             foreach($consignments as $key => $consignment){
                 $response[$key]['manifest_id'] = $consignment->id;
                 $response[$key]['consign_number'] = $consignment->manifest_number;
-                $response[$key]['status'] = $consignment->status;                
-                $response[$key]['receiver_name'] = $consignment->receiver_name;                
-                $response[$key]['mobile'] = $consignment->mobile_number;                
-                $response[$key]['address'] = $consignment->add_line_1 ?? null;                
-                $response[$key]['area'] = $consignment->add_line_2 ?? null;                
-                $response[$key]['city'] = $consignment->city ?? null;                
-                $response[$key]['pincode'] = $consignment->pincode ?? null;                
+                $response[$key]['status'] = $consignment->status;
+                $response[$key]['receiver_name'] = $consignment->receiver_name;
+                $response[$key]['mobile'] = $consignment->mobile_number;
+                $response[$key]['address'] = $consignment->add_line_1 ?? null;
+                $response[$key]['area'] = $consignment->add_line_2 ?? null;
+                $response[$key]['city'] = $consignment->city ?? null;
+                $response[$key]['pincode'] = $consignment->pincode ?? null;
                 $response[$key]['date'] = $consignment->created_at->toDateString();
 
             }
@@ -116,12 +119,12 @@ class ConsignmentController extends Controller
                     'data' => $response
                 ], 200);
             }
-           
+
          }
          return response()->json([
             'status' => 0,
             'message' => 'No Consignment Found',
-            
+
         ], 200);
     }
 
@@ -173,7 +176,7 @@ class ConsignmentController extends Controller
     // public function outForDelivery(Request $request){
 
     //     $consg_number = $request->input('consg_number');
-         
+
     //     if($consg_number){
     //         $isOutForDelivery = $this->isAlreadyOutForDelivery($consg_number);
     //         if($isOutForDelivery){
@@ -189,11 +192,11 @@ class ConsignmentController extends Controller
     //                 ->where('manifest_type', '=', 'O')
     //                 ->where('status', '=', 'Arrived to Destination Hub')
     //                 ->where('manifest_number', '=', $consg_number)->first();
-          
-           
-                    
+
+
+
     //                 //update(array('status' => 'Out for Delivery'));
-            
+
     //         if($update){
     //             return response()->json([
     //                 'status' => 1,
@@ -214,7 +217,7 @@ class ConsignmentController extends Controller
     // }
 
     public function isAlreadyOutForDelivery($consg_number,$loggedOfficeId,$officeType){
-      
+
         $manifest = Manifest::join('bookings', 'manifests.manifest_number', '=', 'bookings.consg_number')
         ->where('bookings.status', '=', 'Out for Delivery')
         ->where('manifests.status', '=', 'Out for Delivery')
@@ -225,8 +228,8 @@ class ConsignmentController extends Controller
         ->where('manifests.sender_type', '=', $officeType)
         ->where('manifests.manifest_number', '=', $consg_number)
         ->first();
-      
-        
+
+
         if($manifest){
             return true;
         }
@@ -248,7 +251,7 @@ class ConsignmentController extends Controller
                 ], 200);
         }
         $no_of_attempts = $this->getNoOfAttempts($consg_number);
-   
+
         if($no_of_attempts > 4){
             return response()->json([
                 'status' => 0,
@@ -265,7 +268,7 @@ class ConsignmentController extends Controller
         }
         ///if($officeType != 'FR'){
         $isOutGoingManifest = $this->isOutGoingManifest($consg_number,$loggedOfficeId,$officeType);
-       
+
         if(!$isOutGoingManifest){
             return response()->json([
                 'status' => 0,
@@ -273,7 +276,7 @@ class ConsignmentController extends Controller
             ], 200);
         }
         //}
-        
+
         $isDelivered =  $this->isDelivered($consg_number);
         if($isDelivered){
             return response()->json( [
@@ -297,12 +300,12 @@ class ConsignmentController extends Controller
         $loggedOfficeId =  $request->input('logged_office_id');
         $officeType =  $request->input('office_type');
         $delivery_user_id = $request->input('delivery_user_id');
-        
+
         $added_to_runsheet = null;
-       
+
         $customer_view =1;
-       
-      
+
+
         foreach($consg_numbers as $consg_number){
 
                 Booking::where('consg_number', '=', $consg_number)->update(array('status' => 'Out for Delivery'));
@@ -354,16 +357,16 @@ class ConsignmentController extends Controller
                         'remarks' =>''
                     ]);
                 }
-                 
+
        }
-     
+
         return response()->json([
             'status' => 1,
             'message' => 'Your run sheet has prepared',
-           
+
         ], 200);
     }
-    
+
     public function getNoOfAttempts($consg_number){
         $bookings = Booking::where('consg_number', '=', $consg_number)
         ->first();
@@ -385,8 +388,8 @@ class ConsignmentController extends Controller
         ->where('sender_id', '=', $loggedOfficeId)
         ->where('sender_type', '=', $officeType)
         ->first();
-        
-  
+
+
         if($manifest){
             return true;
         }
@@ -398,7 +401,7 @@ class ConsignmentController extends Controller
     public function isBooking($consg_number){
         $booking = Booking::where('consg_number', '=', $consg_number)
         ->first();
-  
+
         if($booking){
             return true;
         }
@@ -425,7 +428,7 @@ class ConsignmentController extends Controller
             ->where('status', '=', 'Returned')->first();
     if($returned){
         $manifest = Manifest::where('manifest_number', '=', $consg_number)
-                    ->where('manifest_type', '=', 'RO')            
+                    ->where('manifest_type', '=', 'RO')
                     ->where('receiver_id', '=', $loggedOfficeId)
                     ->where('receiver_type', '=', $officeType)
                     ->where('sender_id', '=', $loggedOfficeId)
@@ -438,7 +441,7 @@ class ConsignmentController extends Controller
         return false;
     }
     return true;
-    
+
 
    }
 
@@ -447,25 +450,25 @@ class ConsignmentController extends Controller
     $today = Carbon::today()->toDateString();
     $user_id = $request->input('logged_user_id');
     $deliveryCount = 0;
-    $deliveryCount = Manifest::where('status', 'Delivered')   
+    $deliveryCount = Manifest::where('status', 'Delivered')
                     ->where('delivery_user_id', '=', $user_id)
                     ->whereDate('created_at', $today)->count();
     return response()->json([
         'status' => 1,
         'count' => $deliveryCount
-   
+
     ], 200);
 
-    
+
    }
 
    public function todayConsignmentCount(Request $request){
-    
+
     $today = Carbon::today()->toDateString();
     $user_id = $request->input('logged_user_id');
     $totalConsignment = 0;
     $returnCount = 0;
-    $totalConsignment = Manifest::where('status', 'Out for Delivery')   
+    $totalConsignment = Manifest::where('status', 'Out for Delivery')
                       ->where('delivery_user_id', '=', $user_id)
                       ->whereDate('created_at', $today)
                       //->groupBy('manifest_number')
@@ -474,7 +477,7 @@ class ConsignmentController extends Controller
                         $join->on('bookings.id','=','deliveries.booking_id');
                         $join->on('bookings.status','=','deliveries.delivery_status');
                     })
-                    ->where('deliveries.delivery_status', 'Delivered')   
+                    ->where('deliveries.delivery_status', 'Delivered')
                     ->where('deliveries.delivery_user_id', '=', $user_id)
                     ->whereDate('deliveries.updated_at', $today)
                     //->groupBy('manifest_number')
@@ -487,14 +490,14 @@ class ConsignmentController extends Controller
             ->where('manifests.delivery_user_id', '=', $user_id)
             //->groupBy('manifests.manifest_number')
             ->count();
-        
-    $returnCount = Manifest::where('status', 'Return to Destination Hub')   
+
+    $returnCount = Manifest::where('status', 'Return to Destination Hub')
                 ->where('delivery_user_id', '=', $user_id)
                 ->whereDate('created_at', $today)
                 //->groupBy('manifest_number')
                 ->count();
-        
-      
+
+
 
     return response()->json([
         'status' => 1,
@@ -502,12 +505,12 @@ class ConsignmentController extends Controller
         'delivered_count' => $deliveryCount,
         'pending_count' => $pendingCount,
         'returned_count' => $returnCount
-   
+
     ], 200);
 
    }
 
-   
+
 
 
 

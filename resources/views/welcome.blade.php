@@ -35,7 +35,7 @@
                 </div>
                 <div class="d-none d-lg-block">
                     <a class="btn btn-primary btn-track" href="/login">Login</a>
-                    <a class="btn btn-primary btn-track" href="https://hthc.co.in/track">Track Parcel</a>
+                    <a class="btn btn-primary btn-track" href="/track">Track Parcel</a>
                 </div>
             </div>
         </nav>
@@ -47,7 +47,7 @@
                         <h3>WELCOME TO HTHC</h3>
                         <h1 class=" text-left">We Provide Best Courier & Parcel Services</h1>
                         <a class="btn btn-primary" href="/login">Login</a>
-                        <a class="btn btn-primary" href="https://hthc.co.in/track">Track Parcel</a>
+                        <a class="btn btn-primary" href="/track">Track Parcel</a>
                     </div>
 
                 </div>

@@ -133,33 +133,44 @@ class PricingController extends Controller
 
     public function pricingDetails(Request $request) {
         $this->validate($request, [
-            'weight' => 'nullable',
-            'subId' => 'nullable',
-            'consgType' => 'nullable'
+            'weight' => 'nullable|numeric',
+            'subId' => 'nullable|numeric',
+            'consgType' => 'nullable|string'
         ]);
 
         $weight = $request->input('weight');
         $docType = $request->input('consgType');
         $subscription = Subscription::where('id', $request->input('subId'))->first();
 
-        $pricing = Pricing::select(['from_weight_kgs', 'to_weight_kgs', 'price', 'addl_weight', 'addl_price'])->orWhere('consg_type', $docType)->orWhere(function ($q) use ($weight) {
-            $q->where('from_weight_kgs', '<=', $weight);
-            $q->where('to_weight_kgs', '>=', $weight);
-        })->first();
+        // Fix: Use proper where conditions
+        $pricing = Pricing::where('consg_type', $docType)
+            ->where('from_weight_kgs', '<=', $weight)
+            ->where('to_weight_kgs', '>=', $weight)
+            ->select(['from_weight_kgs', 'to_weight_kgs', 'price', 'addl_weight', 'addl_price'])
+            ->first();
 
-        $extraWeight = $weight - $pricing->to_weight_kgs;
-        if ($extraWeight < 0) {
-            $totalPrice = $pricing->price + $subscription->price;
-        } elseif ($pricing->addl_weight) {
+        // Fix: If no pricing slab is found, use the lowest available slab
+        if (!$pricing) {
+            $pricing = Pricing::orderBy('from_weight_kgs', 'asc')->first();
+        }
+
+        // Fix: Handle small weight scenarios properly
+        $extraWeight = max(0, $weight - $pricing->to_weight_kgs);
+        if ($extraWeight == 0) {
+            $totalPrice = $pricing->price + ($subscription->price ?? 0);
+        } elseif ($pricing->addl_weight && $pricing->addl_price) {
             $extWeightMultiple = ceil($extraWeight / $pricing->addl_weight);
             $addPrice = $pricing->addl_price * $extWeightMultiple;
-            $totalPrice = $pricing->price + $subscription->price + $addPrice;
+            $totalPrice = $pricing->price + ($subscription->price ?? 0) + $addPrice;
+        } else {
+            $totalPrice = $pricing->price + ($subscription->price ?? 0);
         }
 
         return response()->json([
             'pricing' => $pricing,
             'weights' => $extraWeight,
-            'totalPrice' => $totalPrice ?? ''
+            'totalPrice' => $totalPrice
         ], 200);
     }
+
 }

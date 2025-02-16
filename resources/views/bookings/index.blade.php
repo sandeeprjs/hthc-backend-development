@@ -133,7 +133,7 @@
                         <td>{{ $booking->subs_name ?? '' }}</td>
                         <td>{{ $booking->batch_id ? 'Bulk' : 'Single' }}</td>
                         <td>{{ date('d-m-Y H:i', strtotime($booking->created_at)) }}</td>
-                        <td>{{ $booking->status }}</td>
+                        <td>{{ is_array($booking->status) ? implode(', ', array_unique($booking->status)) : $booking->status }}</td>
                         <td>{{ $booking->user->username ?? '' }}</td>
                         <td>
                             <a href="{{ route('bookings.edit', $booking->id) }}" class="btn btn-secondary btn-sm">Edit</a>

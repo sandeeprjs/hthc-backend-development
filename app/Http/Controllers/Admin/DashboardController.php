@@ -18,6 +18,7 @@ class DashboardController extends Controller
         $this->validate($request, [
             'month_year' => 'nullable'
         ]);
+
         if ($request->input('month_year')) {
             $date = Carbon::createFromFormat('m/Y', $request->input('month_year'));
             $month = $date->month;
@@ -26,10 +27,16 @@ class DashboardController extends Controller
             $month = Carbon::now()->month;
             $year = Carbon::now()->year;
         }
+
+        $user = auth()->user(); // Get the logged-in user
         $type = $request->input('type');
 
         $bookings = Booking::whereMonth('created_at', $month)
             ->whereYear('created_at', $year)
+            ->when($user->office_type !== 'HO', function ($q) use ($user) {
+                // Restrict non-HO users to their branch only
+                $q->where('origin_office_id', $user->office_id);
+            })
             ->when($type == 'branch', function ($q) {
                 $q->whereIn('origin_office_type', ['HO', 'BR'])
                     ->selectRaw('count(*) as total, origin_office_id')
@@ -54,4 +61,5 @@ class DashboardController extends Controller
 
         return view('overview', compact('bookings'));
     }
+
 }

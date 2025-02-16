@@ -26,7 +26,7 @@ class FranchiseeController extends Controller
     {
       return $this->middleware(['auth', 'role']);
     }
-    
+
     /**
      * Get a validator for an incoming registration request.
      *
@@ -38,8 +38,8 @@ class FranchiseeController extends Controller
         return Validator::make($data, [
             'first_name' => ['required', 'string', 'max:255'],
             'enterprise_name' => ['required'],
-            
-        ]); 
+
+        ]);
     }
 
     /**
@@ -55,7 +55,7 @@ class FranchiseeController extends Controller
             'filter_value' => 'nullable',
             'filter_val' => 'nullable'
         ]);
-    
+
         $user = auth()->user();
         $filter_by = $request->input('filter_by');
         $filter_val = $request->input('filter_val');
@@ -74,7 +74,7 @@ class FranchiseeController extends Controller
                     if($filter_by == 'MBL'){
                         return $q->where('mobile_number', 'LIKE', "%$filter_val%");
                     }
-                   
+
                 })
                 ->when(!$user->isAdmin(), function($q) use ($user){
                     if(!$user->isAdmin()){
@@ -82,10 +82,10 @@ class FranchiseeController extends Controller
                     }
                 })
                 ->orderBy('updated_at', 'desc')->paginate('10');
-        
 
-           
-       
+
+
+
         return view('franchisees.index',compact('franchisees'));
     }
 
@@ -149,25 +149,32 @@ class FranchiseeController extends Controller
                 'contact_person_name.required' => 'Contact Person Name is required',
                 'service_pincode_id.required' => 'Serviceable Pincodes is required'
             ]
-            
+
 
         );
 
-        $avatarimage = null;
-        if (request()->hasFile('avatar')) {
-            $profile = request()->file('avatar');
+        // Handle avatar file upload
+        $avatarimage = $franchisee->avatar ?? null; // Retain existing avatar if no new file is uploaded
+        if ($request->hasFile('avatar')) {
+            if ($avatarimage) {
+                Storage::delete('public/uploads/partners/photo/' . $avatarimage); // Delete old file
+            }
+            $profile = $request->file('avatar');
             $avatarimage = md5($profile->getClientOriginalName() . time()) . "." . $profile->getClientOriginalExtension();
-            // $profile->move(base_path('storage/uploads/partners/photo/'), $avatarimage);
-            $profile->move('./storage/uploads/partners/photo/', $avatarimage);
+            $profile->storeAs('public/uploads/partners/photo', $avatarimage);
         }
-        $doc_proof = null;
-        if (request()->hasFile('doc_proof')) {
-            $doc = request()->file('doc_proof');
+
+        // Handle document proof file upload
+        $doc_proof = $franchisee->doc_proof ?? null; // Retain existing doc_proof if no new file is uploaded
+        if ($request->hasFile('doc_proof')) {
+            if ($doc_proof) {
+                Storage::delete('public/uploads/partners/idproof/' . $doc_proof); // Delete old file
+            }
+            $doc = $request->file('doc_proof');
             $doc_proof = md5($doc->getClientOriginalName() . time()) . "." . $doc->getClientOriginalExtension();
-          //  $doc->move(base_path('storage/uploads/partners/idproof/'), $doc_proof);
-            $doc->move('./storage/uploads/partners/idproof/', $doc_proof);
-            
+            $doc->storeAs('public/uploads/partners/idproof', $doc_proof);
         }
+
 
         $franchisee = Franchisee::create([
             'branch_id' => $data['branch_id'],
@@ -209,10 +216,10 @@ class FranchiseeController extends Controller
         return redirect()->route('franchisees.index')->with('success', 'Franchisee added successfully!');
 
 
-       
+
        // $franchisee = Franchisee::create($request->all());
        // $serviceablePin = $request->get('service_pincode_id');
-    
+
         // if($serviceablePin){
         //     foreach($serviceablePin as $key => $pincode){
         //         ServiceablePin::create(
@@ -226,11 +233,11 @@ class FranchiseeController extends Controller
         // }
 
         // return redirect()->route('franchisees.index')->with('success', 'Franchisee added successfully!');
-        
-       
+
+
     }
 
-    /** 
+    /**
      *
      * @param  int  $id
      * @return \Illuminate\Http\Response
@@ -254,8 +261,8 @@ class FranchiseeController extends Controller
         $branches = Branch::get()->all();
         $countries = Country::all();
 
-      
-       
+
+
         return view('franchisees.create',compact('branches','franchisee','pincodes','countries'));
     }
 
@@ -266,7 +273,7 @@ class FranchiseeController extends Controller
         $branches = Branch::get()->all();
         $countries = Country::all();
 
-            
+
         return view('franchisees.view',compact('branches','franchisee','pincodes','countries'));
     }
 
@@ -279,7 +286,7 @@ class FranchiseeController extends Controller
      */
     public function update(Request $request, $id)
     {
-        
+
         $this->validate(
             $request, [
                 'branch_id' => 'required',
@@ -300,7 +307,7 @@ class FranchiseeController extends Controller
                 'ifsc_code' => '',
                 'avatar' => 'nullable|image|mimes:jpeg,png,jpg|max:4028',
                 'doc_proof' => 'nullable|image|mimes:jpeg,png,jpg|max:4028',
-              
+
             ],
             [
                 'code.required' => 'Franchisee Code is required',
@@ -335,7 +342,7 @@ class FranchiseeController extends Controller
             $doc_proof = md5($doc->getClientOriginalName() . time()) . "." . $doc->getClientOriginalExtension();
             $doc->move('./storage/uploads/partners/idproof', $doc_proof);
         }
-        
+
         $franchisee = Franchisee::find($id);
         $franchisee->email = $request->input('email');
         $franchisee->mobile_number = $request->input('mobile_number');
@@ -358,17 +365,17 @@ class FranchiseeController extends Controller
 
         //$franchisee->fill($request->all());
         $franchisee->save();
-       
+
         $franchisee->serviceablePins()->delete();
-        
+
         if ($request->get('service_pincode_id')) {
             $serviceable_pins = array_unique($request->get('service_pincode_id'));
-            
-            foreach ($serviceable_pins as $pincode_id) {   
+
+            foreach ($serviceable_pins as $pincode_id) {
                 $franchisee->serviceablePins()->create([
                     'office_type' => 'FR',
                     'pincode_id' => $pincode_id
-                ]); 
+                ]);
             }
         }
         return redirect()->route('franchisees.index')->with('success', 'Franchisee Updated successfully!');
@@ -386,14 +393,14 @@ class FranchiseeController extends Controller
 
         return redirect()->route('franchisees.index')
             ->with('success', 'Franchisee deleted successfully');
-        
+
     }
 
     public function messages($id = '')
     {
             return [
                 'enterprise_name.required' => 'Franchisee Name is required',
-               
+
             ];
     }
 
@@ -405,7 +412,7 @@ class FranchiseeController extends Controller
         $bookingPartner = ['BOOKING','BOTH'];
         $partner = Franchisee::select(['id', 'code as text'])->where('code', 'LIKE', "$term%")
         ->whereIn('franchisee_type', $bookingPartner)->get();
-       
+
 
         return response()->json($partner);
     }
@@ -418,7 +425,7 @@ class FranchiseeController extends Controller
         $deliveryPartner = ['DELIVERY','BOTH'];
         $partner = Franchisee::select(['id', 'code as text'])->where('code', 'LIKE', "$term%")
         ->whereIn('franchisee_type', $deliveryPartner)->get();
-       
+
 
         return response()->json($partner);
     }

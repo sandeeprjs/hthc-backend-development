@@ -535,24 +535,24 @@ class BookingController extends Controller
 //            if ($booking->sms_to_receiver == 1 && $delivery->mobile_number) {
 //                AppHelper::sendTrackingMessage($delivery->receiver_name, $delivery->mobile_number, $booking->consg_number);
 //            }
-            if($delivery->email){
-                Mail::to($delivery->email)->send(new ConsignmentBooked($booking, $delivery,'receiver'));
-            }
+//            if($delivery->email){
+//                Mail::to($delivery->email)->send(new ConsignmentBooked($booking, $delivery,'receiver'));
+//            }
 
         }
 
         $batch_id = $batchId * env('ENC_KEY');
-        if($sender_email){
-
-            Mail::to($sender_email)->send(new BulkBookingMail($batch_id, $sender_name));
-        }
+//        if($sender_email){
+//
+//            Mail::to($sender_email)->send(new BulkBookingMail($batch_id, $sender_name));
+//        }
 
         $booking = Booking::select('id', 'customer_id', 'customer_name', 'mobile_number', 'sms_to_sender')->where('batch_id', '=', $batchId)->latest('id')->first();
         if ($booking->sms_to_sender == 1 && $booking->mobile_number) {
             // AppHelper::sendBulkTrackingMessage($booking->customer_name, $booking->mobile_number, $batch_id);
         }
         if($booking->mobile_number){
-            AppHelper::sendShipperCopy($booking->customer_name, $booking->mobile_number, $batch_id);
+            //AppHelper::sendShipperCopy($booking->customer_name, $booking->mobile_number, $batch_id);
         }
 
 

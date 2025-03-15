@@ -1,0 +1,129 @@
+// Print styles
+@media print {
+    // Hide non-printable elements
+    .no-print,
+    .navigation,
+    .btn,
+    nav,
+    footer,
+    header,
+    .sidebar,
+    .btn,
+    form:not(.print-form),
+    input:not(.print-input),
+    select:not(.print-select) {
+        display: none !important;
+    }
+
+    // Reset body and html styles
+    html, body {
+        width: 100%;
+        height: auto;
+        margin: 0 !important;
+        padding: 0 !important;
+        overflow: visible !important;
+        background: #fff !important;
+        font-size: 12pt;
+    }
+
+    // Ensure all content is visible
+    .main-container {
+        margin-left: 0 !important;
+        padding: 0 !important;
+    }
+
+    // Show print areas
+    #printArea {
+        display: block !important;
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+        visibility: visible !important;
+    }
+
+    // Table styles for printing
+    table {
+        border-collapse: collapse !important;
+        width: 100% !important;
+        page-break-inside: avoid;
+    }
+
+    td, th {
+        border: 1px solid #000 !important;
+        padding: 5px !important;
+        text-align: left;
+    }
+
+    // Style for acknowledgement
+    .slipper-copy {
+        page-break-after: always;
+    }
+
+    // Title styles
+    .t-title {
+        background-color: #f2f2f2 !important;
+        -webkit-print-color-adjust: exact !important;
+        color-adjust: exact !important;
+        padding: 5px !important;
+        margin: 0 !important;
+        font-size: 10pt !important;
+        text-align: center !important;
+        font-weight: bold !important;
+    }
+
+    // Small text
+    .p-small {
+        font-size: 8pt !important;
+        margin: 3px 0 !important;
+        line-height: 1.2 !important;
+    }
+
+    // Logo
+    .logo-check {
+        max-width: 80px !important;
+        height: auto !important;
+    }
+
+    // Transform images for receiver photos and signatures
+    img.transform {
+        max-width: 80px !important;
+        height: auto !important;
+    }
+
+    // Text alignment
+    .text-center {
+        text-align: center !important;
+    }
+
+    // Set page properties
+    @page {
+        size: A4;
+        margin: 5mm;
+        orphans: 0 !important;
+        widows: 0 !important;
+    }
+
+    // Handle page breaks
+    .page-break {
+        page-break-before: always;
+    }
+
+    // Links
+    a {
+        text-decoration: none !important;
+        color: #000 !important;
+    }
+
+    // Add page counters if needed
+    .page-counter:after {
+        content: counter(page);
+    }
+
+    // Override any background colors
+    * {
+        -webkit-print-color-adjust: exact !important;
+        color-adjust: exact !important;
+        print-color-adjust: exact !important;
+    }
+}

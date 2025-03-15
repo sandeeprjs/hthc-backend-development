@@ -56,9 +56,21 @@ class ManifestController extends Controller
     public function incoming(){
 
         $user = auth()->user();
-        $manifests = Manifest::where('receiver_id','=', $user->office_id)
-                   ->where('receiver_type', '=', $user->office_type)
-                   ->where('manifest_type', '=', 'I')->latest('id')->paginate('10');
+        $manifests = Manifest::with([
+            'booking',
+            'booking.pincode',
+            'booking.delivery',
+            'booking.delivery.pincode',
+            'sender_branch',
+            'sender_franchisee',
+            'receiver_branch',
+            'receiver_franchisee'
+        ])
+            ->where('receiver_id', '=', $user->office_id)
+            ->where('receiver_type', '=', $user->office_type)
+            ->where('manifest_type', '=', 'I')
+            ->latest('id')
+            ->paginate(10);
 
         return view('manifests.incoming',compact('manifests'));
     }
@@ -78,9 +90,21 @@ class ManifestController extends Controller
     public function outgoing(){
 
         $user = auth()->user();
-        $manifests = Manifest::where('sender_id','=', $user->office_id)
-                   ->where('sender_type', '=', $user->office_type)
-                   ->where('manifest_type', '=', 'O')->latest('id')->paginate('10');
+        $manifests = Manifest::with([
+            'booking',
+            'booking.pincode',
+            'booking.delivery',
+            'booking.delivery.pincode',
+            'sender_branch',
+            'sender_franchisee',
+            'receiver_branch',
+            'receiver_franchisee'
+        ])
+            ->where('sender_id', '=', $user->office_id)
+            ->where('sender_type', '=', $user->office_type)
+            ->where('manifest_type', '=', 'O')
+            ->latest('id')
+            ->paginate(10);
 
         return view('manifests.outgoing',compact('manifests'));
 

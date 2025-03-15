@@ -39,3 +39,32 @@ window.axios.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest';
 //     cluster: process.env.MIX_PUSHER_APP_CLUSTER,
 //     encrypted: true
 // });
+// Configure Axios if you're using it
+import axios from 'axios';
+
+// Make global variables available
+window._ = _;
+window.Popper = Popper;
+window.$ = window.jQuery = $;
+window.axios = axios;
+
+// Axios configuration
+window.axios.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest';
+
+// Optional: CSRF token setup
+const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+if (csrfToken) {
+    window.axios.defaults.headers.common['X-CSRF-TOKEN'] = csrfToken;
+}
+
+// Uncomment and configure if you want to use Laravel Echo
+// import Echo from 'laravel-echo';
+// import Pusher from 'pusher-js';
+
+// window.Pusher = Pusher;
+// window.Echo = new Echo({
+//     broadcaster: 'pusher',
+//     key: import.meta.env.VITE_PUSHER_APP_KEY,
+//     cluster: import.meta.env.VITE_PUSHER_APP_CLUSTER,
+//     forceTLS: true
+// });

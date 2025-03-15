@@ -32,14 +32,15 @@ class ConsignmentController extends Controller
             'office_id' => 'nullable',
         ]);
 
-        $startDate = $request->input('start_date') 
+        $startDate = $request->input('start_date')
             ? Carbon::createFromFormat('d/m/Y', $request->input('start_date'))->startOfDay()
             : null;
-        $endDate = $request->input('end_date') 
+        $endDate = $request->input('end_date')
             ? Carbon::createFromFormat('d/m/Y', $request->input('end_date'))->endOfDay()
             : null;
 
-        $consignments = Consignment::select(DB::raw('batch_id, MIN(consg_number) as minConsgNum, MAX(consg_number) as maxConsgNum, office_type, office_id, COUNT(*) as count, created_at'))
+        $consignments = Consignment::with(['office']) // Add eager loading here
+        ->select(DB::raw('batch_id, MIN(consg_number) as minConsgNum, MAX(consg_number) as maxConsgNum, office_type, office_id, COUNT(*) as count, created_at'))
             ->when($startDate && $endDate, fn($query) => $query->whereBetween('created_at', [$startDate, $endDate]))
             ->when($request->input('office_type'), fn($query) => $query->where('office_type', $request->input('office_type')))
             ->when($request->input('office_id'), fn($query) => $query->where('office_id', $request->input('office_id')))

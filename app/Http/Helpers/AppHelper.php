@@ -11,6 +11,7 @@ use GuzzleHttp\Exception\GuzzleException;
 use http\Client;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Schema;
@@ -19,25 +20,18 @@ use Milon\Barcode\DNS1D;
 
 class AppHelper
 {
-    public static function countriesOptionList($countryId = null) {
-        $countries = Country::select(['id', 'iso', 'name'])->get();
+    public static function countriesOptionList($countryId = null)
+    {
+        return Cache::remember('countries_list', 3600, function () use ($countryId) {
+            $countries = Country::select(['id', 'iso', 'name'])->get();
 
-        $countriesList = array();
-        foreach ($countries as $country) {
-            $selected = '';
-
-            if (!$countryId && $country->iso == 'IN') {
-                $selected = 'selected';
+            $countriesList = [];
+            foreach ($countries as $country) {
+                $selected = (!$countryId && $country->iso == 'IN') || ($countryId == $country->id) ? 'selected' : '';
+                $countriesList[] = '<option value="' . $country->id . '"' . $selected . '>' . $country->name . '</option>';
             }
-
-            if ($countryId == $country->id) {
-                $selected = 'selected';
-            }
-
-            $countriesList[] = '<option value="'.$country->id.'"'.$selected.'>'.$country->name.'</option>';
-        }
-
-        return $countriesList;
+            return $countriesList;
+        });
     }
 
 
@@ -52,35 +46,27 @@ class AppHelper
      * @param $sheetQuantity
      * @return array
      */
-    public static function generateBarcode($officeType, $officeId, $batchNumber, $quantity) {
-        if ($officeType == 'FR') {
-            $office = Franchisee::select(['id', 'code'])->where('id', '=', $officeId)->first();
-        } else {
-            $office = Branch::select(['id', 'code'])->where('id', '=', $officeId)->first();
-        }
+    public static function generateBarcode($officeType, $officeId, $batchNumber, $quantity)
+    {
+        $office = ($officeType == 'FR') ?
+            Franchisee::select(['id', 'code'])->where('id', $officeId)->first() :
+            Branch::select(['id', 'code'])->where('id', $officeId)->first();
 
         $existingBatch = Consignment::where('batch_id', $batchNumber)->max('consg_number');
-        if ($existingBatch) {
-            $number = explode('-', $existingBatch)[1];
-            $number++;
-        } else {
-            $number = '1';
-        }
+        $number = $existingBatch ? (explode('-', $existingBatch)[1] + 1) : 1;
 
-        $i = 1;
-        $barCodes = array();
-        $barcodeGenerator = new DNS1D(); // Create an instance of DNS1D
+        $barCodes = [];
+        $barcodeGenerator = new DNS1D();
 
-        while ($i <= $quantity) {
-            $consgNumber = str_pad($number, 8, 0, STR_PAD_LEFT);
-            $consignment = new Consignment();
-            $consignment->consg_number = $office->code . '-' . $consgNumber;
-            $consignment->office_type = $officeType;
-            $consignment->office_id = $officeId;
-            $consignment->batch_id = $batchNumber;
-            $consignment->save();
+        for ($i = 1; $i <= $quantity; $i++) {
+            $consgNumber = str_pad($number++, 8, '0', STR_PAD_LEFT);
+            Consignment::create([
+                'consg_number' => $office->code . '-' . $consgNumber,
+                'office_type' => $officeType,
+                'office_id' => $officeId,
+                'batch_id' => $batchNumber
+            ]);
 
-            // Generate barcode
             $barCodes[] = $barcodeGenerator->getBarcodePNG(
                 $office->code . '-' . $consgNumber,
                 "C128",
@@ -89,10 +75,7 @@ class AppHelper
                 [1, 1, 1],
                 true
             );
-            $i++;
-            $number++;
         }
-
         return $barCodes;
     }
 
@@ -165,31 +148,30 @@ class AppHelper
         return $enabledModules;
     }
 
-    public static function sendTrackingMessage($CustomerName, $mobileNumbers, $AWB) {
-        $client = new \GuzzleHttp\Client();
-        if ($mobileNumbers) {
-
-            $apiKey = urlencode('NTE0NTU0NmIzNzU1NGU1MzQ0NTM3NDY3Nzk1MDU0Nzk=');
-            $numbers = array($mobileNumbers);
-            $sender = urlencode('hthcin');
-            $url = "www.hthc.co.in/track";
-            $message = "Dear $CustomerName, your AWB # $AWB is booked and will be delivered by HTHC Courier, to track $url";
-            $numbers = implode(',', $numbers);
-
-            // Prepare data for POST request
-            $data = array('apikey' => $apiKey, 'numbers' => $numbers, "sender" => $sender, "message" => $message);
-
-            // Send the POST request with cURL
-            $ch = curl_init('https://api.textlocal.in/send/');
-            curl_setopt($ch, CURLOPT_POST, true);
-            curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
-            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-            $response = curl_exec($ch);
-            curl_close($ch);
-
-        } else {
-            throw new \Exception("Mobile number not available", Response::HTTP_PRECONDITION_FAILED);
+    public static function sendTrackingMessage($CustomerName, $mobileNumbers, $AWB)
+    {
+        if (!$mobileNumbers) {
+            throw new \Exception("Mobile number not available", 412);
         }
+
+        $apiKey = env('TEXTLOCAL_API_KEY');
+        $sender = env('TEXTLOCAL_SENDER');
+        $url = "www.hthc.co.in/track";
+        $message = "Dear $CustomerName, your AWB # $AWB is booked and will be delivered by HTHC Courier. Track here: $url";
+
+        $data = [
+            'apikey' => $apiKey,
+            'numbers' => implode(',', (array) $mobileNumbers),
+            'sender' => $sender,
+            'message' => $message
+        ];
+
+        $ch = curl_init(env('TEXTLOCAL_URL'));
+        curl_setopt($ch, CURLOPT_POST, true);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_exec($ch);
+        curl_close($ch);
     }
 
     public static function sendShipperCopy($CustomerName, $mobileNumbers, $consgNumber) {

@@ -1,0 +1,230 @@
+// Utility classes that work alongside Tailwind
+
+// Spacing utilities
+@for $i from 0 through 5 {
+    $value: $i * 0.25rem;
+
+    .m-#{$i} {
+        margin: $value !important;
+    }
+
+    .mt-#{$i} {
+        margin-top: $value !important;
+    }
+
+    .mr-#{$i} {
+        margin-right: $value !important;
+    }
+
+    .mb-#{$i} {
+        margin-bottom: $value !important;
+    }
+
+    .ml-#{$i} {
+        margin-left: $value !important;
+    }
+
+    .mx-#{$i} {
+        margin-left: $value !important;
+        margin-right: $value !important;
+    }
+
+    .my-#{$i} {
+        margin-top: $value !important;
+        margin-bottom: $value !important;
+    }
+
+    .p-#{$i} {
+        padding: $value !important;
+    }
+
+    .pt-#{$i} {
+        padding-top: $value !important;
+    }
+
+    .pr-#{$i} {
+        padding-right: $value !important;
+    }
+
+    .pb-#{$i} {
+        padding-bottom: $value !important;
+    }
+
+    .pl-#{$i} {
+        padding-left: $value !important;
+    }
+
+    .px-#{$i} {
+        padding-left: $value !important;
+        padding-right: $value !important;
+    }
+
+    .py-#{$i} {
+        padding-top: $value !important;
+        padding-bottom: $value !important;
+    }
+}
+
+// Fixed spacing for larger values
+.mt-6 { margin-top: 1.5rem !important; }
+.mb-6 { margin-bottom: 1.5rem !important; }
+.pt-6 { padding-top: 1.5rem !important; }
+.pb-6 { padding-bottom: 1.5rem !important; }
+
+// Auto margins
+.m-auto { margin: auto !important; }
+.mt-auto { margin-top: auto !important; }
+.mr-auto { margin-right: auto !important; }
+.mb-auto { margin-bottom: auto !important; }
+.ml-auto { margin-left: auto !important; }
+.mx-auto { margin-left: auto !important; margin-right: auto !important; }
+.my-auto { margin-top: auto !important; margin-bottom: auto !important; }
+
+// Display utilities
+.d-none { display: none !important; }
+.d-inline { display: inline !important; }
+.d-inline-block { display: inline-block !important; }
+.d-block { display: block !important; }
+.d-flex { display: flex !important; }
+.d-inline-flex { display: inline-flex !important; }
+.d-grid { display: grid !important; }
+
+// Flex utilities
+.flex-row { flex-direction: row !important; }
+.flex-column { flex-direction: column !important; }
+.flex-wrap { flex-wrap: wrap !important; }
+.flex-nowrap { flex-wrap: nowrap !important; }
+.flex-grow-0 { flex-grow: 0 !important; }
+.flex-grow-1 { flex-grow: 1 !important; }
+.flex-shrink-0 { flex-shrink: 0 !important; }
+.flex-shrink-1 { flex-shrink: 1 !important; }
+
+// Justify content
+.justify-content-start { justify-content: flex-start !important; }
+.justify-content-end { justify-content: flex-end !important; }
+.justify-content-center { justify-content: center !important; }
+.justify-content-between { justify-content: space-between !important; }
+.justify-content-around { justify-content: space-around !important; }
+.justify-content-evenly { justify-content: space-evenly !important; }
+
+// Align items
+.align-items-start { align-items: flex-start !important; }
+.align-items-end { align-items: flex-end !important; }
+.align-items-center { align-items: center !important; }
+.align-items-baseline { align-items: baseline !important; }
+.align-items-stretch { align-items: stretch !important; }
+
+// Text alignment
+.text-left { text-align: left !important; }
+.text-center { text-align: center !important; }
+.text-right { text-align: right !important; }
+.text-justify { text-align: justify !important; }
+
+// Text transformation
+.text-lowercase { text-transform: lowercase !important; }
+.text-uppercase { text-transform: uppercase !important; }
+.text-capitalize { text-transform: capitalize !important; }
+
+// Text colors
+.text-primary { color: #3490dc !important; }
+.text-secondary { color: #6c757d !important; }
+.text-success { color: #38c172 !important; }
+.text-danger { color: #e3342f !important; }
+.text-warning { color: #ffed4a !important; }
+.text-info { color: #6cb2eb !important; }
+.text-light { color: #f8f9fa !important; }
+.text-dark { color: #343a40 !important; }
+.text-white { color: #ffffff !important; }
+.text-black { color: #000000 !important; }
+
+// Font weight
+.font-weight-light { font-weight: 300 !important; }
+.font-weight-normal { font-weight: 400 !important; }
+.font-weight-bold { font-weight: 700 !important; }
+
+// Positions
+.position-static { position: static !important; }
+.position-relative { position: relative !important; }
+.position-absolute { position: absolute !important; }
+.position-fixed { position: fixed !important; }
+.position-sticky { position: sticky !important; }
+
+// Width and height
+.w-25 { width: 25% !important; }
+.w-50 { width: 50% !important; }
+.w-75 { width: 75% !important; }
+.w-100 { width: 100% !important; }
+.h-25 { height: 25% !important; }
+.h-50 { height: 50% !important; }
+.h-75 { height: 75% !important; }
+.h-100 { height: 100% !important; }
+
+// Custom
+.w-auto { width: auto !important; }
+.h-auto { height: auto !important; }
+
+// Border utilities
+.border { border: 1px solid #dee2e6 !important; }
+.border-top { border-top: 1px solid #dee2e6 !important; }
+.border-right { border-right: 1px solid #dee2e6 !important; }
+.border-bottom { border-bottom: 1px solid #dee2e6 !important; }
+.border-left { border-left: 1px solid #dee2e6 !important; }
+.border-0 { border: 0 !important; }
+
+// Border colors
+.border-primary { border-color: #3490dc !important; }
+.border-secondary { border-color: #6c757d !important; }
+.border-success { border-color: #38c172 !important; }
+.border-danger { border-color: #e3342f !important; }
+
+// Border radius
+.rounded { border-radius: 0.25rem !important; }
+.rounded-top { border-top-left-radius: 0.25rem !important; border-top-right-radius: 0.25rem !important; }
+.rounded-right { border-top-right-radius: 0.25rem !important; border-bottom-right-radius: 0.25rem !important; }
+.rounded-bottom { border-bottom-right-radius: 0.25rem !important; border-bottom-left-radius: 0.25rem !important; }
+.rounded-left { border-top-left-radius: 0.25rem !important; border-bottom-left-radius: 0.25rem !important; }
+.rounded-circle { border-radius: 50% !important; }
+.rounded-0 { border-radius: 0 !important; }
+
+// Background colors
+.bg-primary { background-color: #3490dc !important; }
+.bg-secondary { background-color: #6c757d !important; }
+.bg-success { background-color: #38c172 !important; }
+.bg-danger { background-color: #e3342f !important; }
+.bg-warning { background-color: #ffed4a !important; }
+.bg-info { background-color: #6cb2eb !important; }
+.bg-light { background-color: #f8f9fa !important; }
+.bg-dark { background-color: #343a40 !important; }
+.bg-white { background-color: #ffffff !important; }
+.bg-transparent { background-color: transparent !important; }
+
+// Overflow utilities
+.overflow-auto { overflow: auto !important; }
+.overflow-hidden { overflow: hidden !important; }
+.overflow-visible { overflow: visible !important; }
+.overflow-scroll { overflow: scroll !important; }
+.overflow-x-auto { overflow-x: auto !important; }
+.overflow-y-auto { overflow-y: auto !important; }
+.overflow-x-hidden { overflow-x: hidden !important; }
+.overflow-y-hidden { overflow-y: hidden !important; }
+
+// Visibility utilities
+.visible { visibility: visible !important; }
+.invisible { visibility: hidden !important; }
+
+// Sizing for form elements
+.form-control-sm { height: calc(1.5em + 0.5rem + 2px); padding: 0.25rem 0.5rem; font-size: 0.875rem; line-height: 1.5; border-radius: 0.2rem; }
+.form-control-lg { height: calc(1.5em + 1rem + 2px); padding: 0.5rem 1rem; font-size: 1.25rem; line-height: 1.5; border-radius: 0.3rem; }
+
+// Shadow utilities
+.shadow-none { box-shadow: none !important; }
+.shadow-sm { box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075) !important; }
+.shadow { box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important; }
+.shadow-lg { box-shadow: 0 1rem 3rem rgba(0, 0, 0, 0.175) !important; }
+
+// Special utilities for forms
+.is-valid { border-color: #38c172 !important; }
+.is-invalid { border-color: #e3342f !important; }
+
+// Transition utilities
+.transition { transition: all 0.3s ease-in-out !important; }

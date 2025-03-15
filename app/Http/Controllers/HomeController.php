@@ -17,7 +17,7 @@ class HomeController extends Controller
      */
     public function __construct()
     {
-        $this->middleware('auth')->except(['welcome']);;
+        $this->middleware('auth')->except(['welcome']);
     }
 
     /**
@@ -25,120 +25,222 @@ class HomeController extends Controller
      *
      * @return \Illuminate\Contracts\Support\Renderable
      */
-    public function welcome(){ 
+    public function welcome()
+    {
         return view('welcome');
     }
 
-
     public function index()
     {
-        ///echo 'COMSNOSOS';
         $user = auth()->user();
-        // if(!$user->isAdmin()){
-        //     return view('welcome');
-        // }
-        $bookings = Booking::selectRaw('count(*) as total, DATE_FORMAT(created_at, "%u") as week')
-            ->orderByRaw('WEEK(created_at) ASC')
-            ->groupBy('week')
-            ->get('total', 'week');
 
+        // Get today's date
         $today = Carbon::today()->toDateString();
-        $totalBookings = Booking::count();
-        $totalTransit = Booking::where('status', 'in transit')->whereDate('updated_at', $today)->count();
-        $totalDelivered = Booking::where('status', 'delivered')->whereDate('updated_at', $today)->count();
-        $bookingsToday = Booking::whereDate('created_at', '=', $today)->count();
-        $returnedCancel = Booking::whereIn('status', ['returned', 'cancel'])->whereDate('updated_at', $today)->count();
 
-        $total = array_column($bookings->toArray(), 'total');
-        $date = array_column($bookings->toArray(), 'week');
+        // Get the current month and year
+        $currentMonth = Carbon::now()->month;
+        $currentYear = Carbon::now()->year;
+
+        // Get bookings data for weekly chart (last 8 weeks)
+        $startDate = Carbon::now()->subWeeks(7)->startOfWeek();
+        $endDate = Carbon::now()->endOfWeek();
+
+        $bookingsByWeek = Booking::whereBetween('created_at', [$startDate, $endDate])
+            ->selectRaw('count(*) as total, YEARWEEK(created_at) as week_number,
+                         DATE_FORMAT(min(created_at), "%b %d") as start_date,
+                         DATE_FORMAT(max(created_at), "%b %d") as end_date')
+            ->groupBy('week_number')
+            ->orderBy('week_number', 'ASC')
+            ->get();
+
+        // Prepare data for weekly chart
+        $weekLabels = $bookingsByWeek->map(function ($item) {
+            return $item->start_date . ' - ' . $item->end_date;
+        })->toArray();
+
+        $weekData = $bookingsByWeek->pluck('total')->toArray();
+
+        // Ensure we have at least some data to display
+        if (empty($weekLabels)) {
+            $weekLabels = ['No data'];
+            $weekData = [0];
+        }
+
+        // Create weekly bookings chart
         $bookingByDateChart = new BookingCharts();
-        $bookingByDateChart->labels(AppHelper::getStartEndDateFromWeek($date));
-        $bookingByDateChart->loaderColor('blue');
-        $bookingByDateChart->dataset('Booking Weekly', 'line', $total)
-                    ->color('black');
+        $bookingByDateChart->labels($weekLabels);
+        $bookingByDateChart->dataset('Bookings', 'line', $weekData)
+            ->color('#6C757D')
+            ->backgroundColor('rgba(108, 117, 125, 0.2)')
+            ->lineTension(0.3);
 
-        $topCustomer = Booking::whereMonth('created_at', Carbon::now()->month)->selectRaw('count(*) as total, customer_id, customer_name')
-            ->groupBy('customer_id')
+        // Get today's stats
+        $bookingsToday = Booking::whereDate('created_at', $today)->count() ?: 0;
+        $totalTransit = Booking::where('status', 'in transit')->whereDate('updated_at', $today)->count() ?: 0;
+        $totalDelivered = Booking::where('status', 'delivered')->whereDate('updated_at', $today)->count() ?: 0;
+        $returnedCancel = Booking::whereIn('status', ['returned', 'cancel'])->whereDate('updated_at', $today)->count() ?: 0;
+
+        // Get top 5 customers for current month
+        $topCustomer = Booking::whereMonth('created_at', $currentMonth)
+            ->whereYear('created_at', $currentYear)
+            ->selectRaw('count(*) as total, customer_id, customer_name')
+            ->groupBy('customer_id', 'customer_name')
             ->orderBy('total', 'DESC')
             ->limit(5)
             ->pluck('total', 'customer_name');
 
+        // Handle empty data scenario for customers
+        if ($topCustomer->isEmpty()) {
+            $topCustomer = collect(['No Data' => 0]);
+        }
+
+        // Create customer chart
         $customerChart = new BookingCharts();
         $customerChart->labels($topCustomer->keys())
-                    ->height(200)
-                    ->width(200);
+            ->height(200)
+            ->width(200);
         $customerChart->dataset('Top Customers', 'doughnut', $topCustomer->values())
-                ->backgroundColor(collect(AppHelper::generateRandomColors($topCustomer->count())));
-        $customerChart->minimalist(true);
-        $customerChart->options(
-            [
-                'scales' => [
-                    'xAxes' => [ [ 'display' => false, ], ], 'yAxes' => [ [ 'display' => false, ], ],
-                ],
-                'legends' => [
-                    'display' => false
-                ],
+            ->backgroundColor(collect(AppHelper::generateRandomColors($topCustomer->count())));
+        $customerChart->options([
+            'responsive' => true,
+            'maintainAspectRatio' => false,
+            'legend' => ['position' => 'bottom', 'labels' => ['padding' => 10, 'fontSize' => 11]],
+            'tooltips' => ['enabled' => true]
+        ]);
 
-            ]
-        );
-
-        $topBranches = Booking::whereIn('origin_office_type', ['HO', 'BR'])->whereMonth('created_at', Carbon::now()->month)->selectRaw('count(*) as total, origin_office_id')
+        // Get top 5 branches for current month
+        $topBranches = Booking::whereIn('origin_office_type', ['HO', 'BR'])
+            ->whereMonth('created_at', $currentMonth)
+            ->whereYear('created_at', $currentYear)
+            ->selectRaw('count(*) as total, origin_office_id')
             ->groupBy('origin_office_id')
-            ->with('bookingBranch:id,code')
+            ->with('bookingBranch:id,code,branch_name')
             ->orderBy('total', 'DESC')
             ->limit(5)
-            ->get('total', 'origin_office_id');
+            ->get();
 
-        $bookingBranches = array_column(array_column($topBranches->toArray(), 'booking_branch'), 'code');
-        $totalBranches = array_column($topBranches->toArray(), 'total');
+        // Handle empty data scenario for branches
+        if ($topBranches->isEmpty()) {
+            $branchChart = new BookingCharts();
+            $branchChart->labels(['No Data'])
+                ->height(200)
+                ->width(200);
+            $branchChart->dataset('No Data Available', 'doughnut', [1])
+                ->backgroundColor(['#f8f9fa']);
+        } else {
+            $bookingBranches = $topBranches->map(function($branch) {
+                return $branch->bookingBranch ? $branch->bookingBranch->code : 'Unknown';
+            })->toArray();
 
-        $branchChart = new BookingCharts();
-        $branchChart->labels($bookingBranches)
-                    ->displayAxes(false)
-                    ->displayLegend(false)
-                    ->height(200)
-                    ->width(200);
-        $branchChart->dataset('Top Branches', 'doughnut', $totalBranches)
-                    ->backgroundColor(collect(AppHelper::generateRandomColors($topBranches->count())));
+            $totalBranches = $topBranches->pluck('total')->toArray();
 
-        $topPartners = Booking::where('origin_office_type', 'FR')->whereMonth('created_at', Carbon::now()->month)->selectRaw('count(*) as total, origin_office_id')
+            $branchChart = new BookingCharts();
+            $branchChart->labels($bookingBranches)
+                ->height(200)
+                ->width(200);
+            $branchChart->dataset('Top Branches', 'doughnut', $totalBranches)
+                ->backgroundColor(collect(AppHelper::generateRandomColors($topBranches->count())));
+        }
+
+        $branchChart->options([
+            'responsive' => true,
+            'maintainAspectRatio' => false,
+            'legend' => ['position' => 'bottom', 'labels' => ['padding' => 10, 'fontSize' => 11]],
+            'tooltips' => ['enabled' => true]
+        ]);
+
+        // Get top 5 partners for current month
+        $topPartners = Booking::where('origin_office_type', 'FR')
+            ->whereMonth('created_at', $currentMonth)
+            ->whereYear('created_at', $currentYear)
+            ->selectRaw('count(*) as total, origin_office_id')
             ->groupBy('origin_office_id')
-            ->with('bookingFranchisee:id,code')
+            ->with('bookingFranchisee:id,code,enterprise_name')
             ->orderBy('total', 'DESC')
             ->limit(5)
-            ->get('total', 'origin_office_id');
+            ->get();
 
-        $bookingPartners = array_column(array_column($topPartners->toArray(), 'booking_franchisee'), 'code');
-        $totalPartners = array_column($topPartners->toArray(), 'total');
+        // Handle empty data scenario for partners
+        if ($topPartners->isEmpty()) {
+            $partnerChart = new BookingCharts();
+            $partnerChart->labels(['No Data'])
+                ->height(200)
+                ->width(200);
+            $partnerChart->dataset('No Data Available', 'doughnut', [1])
+                ->backgroundColor(['#f8f9fa']);
+        } else {
+            $bookingPartners = $topPartners->map(function($partner) {
+                return $partner->bookingFranchisee ? $partner->bookingFranchisee->code : 'Unknown';
+            })->toArray();
 
-        $partnerChart = new BookingCharts();
-        $partnerChart->labels($bookingPartners)
-                    ->height(200)
-                    ->width(200);
-        $partnerChart->dataset('Top Partners', 'doughnut', $totalPartners)
-            ->backgroundColor(collect(AppHelper::generateRandomColors($topPartners->count())));
-        $partnerChart->options(
-            [ 'scales' =>
-                [ 'xAxes' => [ [ 'display' => false, ], ], 'yAxes' => [ [ 'display' => false, ], ], ],
-            ]
-        );
-        $partnerChart->minimalist(true);
+            $totalPartners = $topPartners->pluck('total')->toArray();
 
-        $topSubscriptions = Booking::selectRaw('count(*) as total, subscription_id')
+            $partnerChart = new BookingCharts();
+            $partnerChart->labels($bookingPartners)
+                ->height(200)
+                ->width(200);
+            $partnerChart->dataset('Top Partners', 'doughnut', $totalPartners)
+                ->backgroundColor(collect(AppHelper::generateRandomColors($topPartners->count())));
+        }
+
+        $partnerChart->options([
+            'responsive' => true,
+            'maintainAspectRatio' => false,
+            'legend' => ['position' => 'bottom', 'labels' => ['padding' => 10, 'fontSize' => 11]],
+            'tooltips' => ['enabled' => true]
+        ]);
+
+        // Get top 5 subscription plans
+        $topSubscriptions = Booking::whereMonth('created_at', $currentMonth)
+            ->whereYear('created_at', $currentYear)
+            ->selectRaw('count(*) as total, subscription_id')
             ->groupBy('subscription_id')
             ->orderBy('total', 'DESC')
             ->limit(5)
-            ->get('total', 'subscription_id');
+            ->get();
 
-        $subscriptionsList = array_column($topSubscriptions->toArray(), 'subs_name');
-        $subscriptionCount = array_column($topSubscriptions->toArray(), 'total');
+        // Handle empty data scenario for subscriptions
+        if ($topSubscriptions->isEmpty()) {
+            $subscriptionChart = new BookingCharts();
+            $subscriptionChart->labels(['No Data']);
+            $subscriptionChart->dataset('No Data Available', 'bar', [0])
+                ->backgroundColor(['#f8f9fa']);
+        } else {
+            // Use subscription name if available, otherwise use IDs
+            $subscriptionsList = $topSubscriptions->map(function($sub) {
+                return $sub->subscription_id ? 'Plan ' . $sub->subscription_id : 'Unknown';
+            })->toArray();
 
-        $subscriptionChart = new BookingCharts();
-        $subscriptionChart->labels($subscriptionsList)
-                        ->dataset('Top Subscription', 'bar', $subscriptionCount)
-                        ->backgroundColor(collect(AppHelper::generateRandomColors($topSubscriptions->count())));
+            $subscriptionCount = $topSubscriptions->pluck('total')->toArray();
 
-       return view('home', compact(['bookingByDateChart', 'customerChart', 'branchChart', 'partnerChart', 'subscriptionChart', 'totalBookings', 'totalTransit', 'totalDelivered', 'bookingsToday', 'returnedCancel']));
-       
+            $subscriptionChart = new BookingCharts();
+            $subscriptionChart->labels($subscriptionsList);
+            $subscriptionChart->dataset('Top Plans', 'bar', $subscriptionCount)
+                ->backgroundColor(collect(AppHelper::generateRandomColors($topSubscriptions->count())));
+        }
+
+        $subscriptionChart->options([
+            'responsive' => true,
+            'maintainAspectRatio' => false,
+            'legend' => ['display' => false],
+            'scales' => [
+                'yAxes' => [['ticks' => ['beginAtZero' => true]]],
+                'xAxes' => [['ticks' => ['autoSkip' => false]]]
+            ]
+        ]);
+
+        return view('home', [
+            'user' => $user,
+            'bookingsToday' => $bookingsToday, // Use the variable you calculated earlier
+            'totalTransit' => $totalTransit,
+            'totalDelivered' => $totalDelivered,
+            'returnedCancel' => $returnedCancel,
+            'branchChart' => $branchChart,
+            'partnerChart' => $partnerChart,
+            'customerChart' => $customerChart,
+            'bookingByDateChart' => $bookingByDateChart,
+            'subscriptionChart' => $subscriptionChart,
+        ]);
+
     }
 }

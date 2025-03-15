@@ -4,8 +4,69 @@
 // Variables
 @import 'variables';
 @import "login";
-@import 'side-bar';
-@import 'home';
 
+@import "navigation";
+@import "forms";
 // Bootstrap
 @import '~bootstrap/scss/bootstrap';
+
+// Variables
+$primary-color: #3490dc;
+$secondary-color: #343a40;
+$success-color: #38c172;
+$danger-color: #e3342f;
+$light-color: #f8f9fa;
+$dark-color: #343a40;
+$white: #ffffff;
+$black: #000000;
+
+// Global loader
+#global-loader {
+    position: fixed;
+    z-index: 9999;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: none;
+
+    .loader-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(255, 255, 255, 0.8);
+    }
+
+    .loader-content {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        text-align: center;
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            margin: 0 auto 10px;
+            border: 4px solid rgba(0, 0, 0, 0.1);
+            border-radius: 50%;
+            border-top-color: $primary-color; /* Laravel blue */
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        p {
+            color: #333;
+            font-weight: 600;
+        }
+    }
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+

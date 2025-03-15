@@ -5,7 +5,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Http\Helpers\AppHelper;
 use App\Models\{Subscription, Pincode, Customer, Pricing, Booking, Delivery, CustomerOffice, Consignment, Branch};
-use Illuminate\Support\Facades\{Mail, Log, DB};
+use Illuminate\Support\Facades\{Mail, Log, DB, Cache};
 use App\Mail\ConsignmentBooked;
 use Exception;
 
@@ -16,8 +16,13 @@ class BookingController extends Controller
         try {
             DB::beginTransaction();
 
-            // Validate consignment number
-            if ($this->isConsignmentExists($request->consg_number)) {
+            // Cache consignment existence check
+            $cacheKey = "consignment_exists_{$request->consg_number}";
+            $exists = Cache::remember($cacheKey, 300, function () use ($request) {
+                return Booking::where('consg_number', $request->consg_number)->exists();
+            });
+
+            if ($exists) {
                 return $this->errorResponse("Consignment Number Already Exists");
             }
 
@@ -27,6 +32,7 @@ class BookingController extends Controller
                 $request->origin_office_type,
                 $request->origin_office_id
             );
+
             if ($isValidBranch !== true) {
                 return $this->errorResponse($isValidBranch);
             }
@@ -38,8 +44,12 @@ class BookingController extends Controller
                 $customerId = $customer->id;
             }
 
-            // Get destination branch based on delivery pincode
-            $destBranch = Branch::where('pincode_id', $request->receiver_pincode_id)->first();
+            // Cache branch lookup for 10 minutes
+            $branchCacheKey = "branch_pincode_{$request->receiver_pincode_id}";
+            $destBranch = Cache::remember($branchCacheKey, 600, function () use ($request) {
+                return Branch::where('pincode_id', $request->receiver_pincode_id)->first();
+            });
+
             if (!$destBranch) {
                 throw new Exception('No destination branch found for given pincode');
             }
@@ -134,17 +144,14 @@ class BookingController extends Controller
             );
         }
 
-//        if ($booking->email) {
-//            Mail::to($booking->email)->send(
-//                new ConsignmentBooked($booking, $delivery, 'sender')
-//            );
-//        }
+        // Uncomment for email sending when needed
+        // if ($booking->email) {
+        //     Mail::queue(new ConsignmentBooked($booking, $delivery, 'sender'));
+        // }
 
-//        if ($delivery->email) {
-//            Mail::to($delivery->email)->send(
-//                new ConsignmentBooked($booking, $delivery, 'receiver')
-//            );
-//        }
+        // if ($delivery->email) {
+        //     Mail::queue(new ConsignmentBooked($booking, $delivery, 'receiver'));
+        // }
     }
 
     private function isConsignmentExists($consgNumber)
@@ -154,18 +161,21 @@ class BookingController extends Controller
 
     private function validateBranch($consgNumber, $officeType, $officeId)
     {
-        $consignment = Consignment::where('consg_number', $consgNumber)->first();
+        $cacheKey = "consignment_validation_{$consgNumber}";
+        return Cache::remember($cacheKey, 300, function () use ($consgNumber, $officeType, $officeId) {
+            $consignment = Consignment::where('consg_number', $consgNumber)->first();
 
-        if (!$consignment) {
-            return 'Invalid Consignment Number';
-        }
+            if (!$consignment) {
+                return 'Invalid Consignment Number';
+            }
 
-        if ($officeType != $consignment->office_type ||
-            $officeId != $consignment->office_id) {
-            return "Cannot book consignment {$consgNumber}. Generated for different office.";
-        }
+            if ($officeType != $consignment->office_type ||
+                $officeId != $consignment->office_id) {
+                return "Cannot book consignment {$consgNumber}. Generated for different office.";
+            }
 
-        return true;
+            return true;
+        });
     }
 
     private function successResponse($message, $data = null)

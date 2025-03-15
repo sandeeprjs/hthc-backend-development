@@ -21,8 +21,8 @@ Auth::routes();
 Route::get('/admin/home', 'HomeController@index')->name('home');
 Route::get('/admin/overview', 'Admin\DashboardController@index')->name('overview');
 
-
-
+// Users
+Route::resource('/admin/master/users', 'Admin\UserController');
 
 //Franchisee
 Route::post('/admin/franchisee/search', 'Admin\FranchiseeController@search')->name('franchisee.search');
@@ -68,17 +68,18 @@ Route::get('/admin/subscription-list', 'Admin\SubscriptionController@subscriptio
 
 //Bookings
 Route::get('/admin/booking/calculate-volumetric-weight', 'Admin\BookingController@calculateVolumetricWeight')->name('calculate-weight');
-Route::get('/admin/bookings/bulk', 'Admin\BookingController@bulkBooking')->name('bookings.bulk');
-Route::post('/admin/bookings/import', 'Admin\BookingController@import')->name('bookings.import');
-Route::get('/admin/bookings/validate/{batchId}', 'Admin\BookingController@validateExcel')->name('bookings.validate');
-Route::get('/admin/bookings/bulk-booking-details', 'Admin\BookingController@bulkBookingDetails');
-Route::put('/admin/bookings/sheet-update', 'Admin\BookingController@sheetUpdate')->name('bookings.row-update');
-Route::delete('/admin/bookings/row-delete', 'Admin\BookingController@rowDelete')->name('bookings.row-delete');
-Route::get('/admin/testEmail', 'Admin\BookingController@testMail');
-Route::get('/admin/bookings/bulk-create/{batchId}', 'Admin\BookingController@bulkCreate')->name('bulk-booking.create');
+Route::get('/admin/bookings/bulk', 'Admin\BulkBookingController@bulkBooking')->name('bookings.bulk');
+Route::post('/admin/bookings/import', 'Admin\BulkBookingController@import')->name('bookings.import');
+Route::get('/admin/bookings/validate/{batchId}', 'Admin\BulkBookingController@validateExcel')->name('bookings.validate');
+Route::get('/admin/bookings/bulk-booking-details', 'Admin\BulkBookingController@bulkBookingDetails');
+Route::put('/admin/bookings/sheet-update', 'Admin\BulkBookingController@sheetUpdate')->name('bookings.row-update');
+Route::delete('/admin/bookings/row-delete', 'Admin\BulkBookingController@rowDelete')->name('bookings.row-delete');
+Route::get('/admin/testEmail', 'Admin\NotificationController@testMail');
+Route::get('/admin/bookings/bulk-create/{batchId}', 'Admin\BulkBookingController@bulkCreate')->name('bulk-booking.create');
 Route::resource('/admin/bookings', 'Admin\BookingController');
-Route::get('/admin/booking/sms', 'Admin\BookingController@sendSMSTest');
-Route::get('/admin/emailtest', 'Admin\BookingController@emailTest');
+Route::get('/admin/booking/sms', 'Admin\NotificationController@sendSMSTest');
+Route::get('/admin/emailtest', 'Admin\NotificationController@testMail');
+Route::get('/admin/validate-consignment', 'Admin\BookingController@validateConsignment')->name('bookings.validate-consignment');
 
 // Route::get('/admin/booking/email-test', 'Admin\BookingController@emailTest');
 Route::get('/admin/booking/download-bb-sample', 'Admin\BookingController@getBulkBookingSample')->name('download-bb-sample');
@@ -157,6 +158,7 @@ Route::get('/admin/enabled-modules', 'Admin\ModuleController@index')->name('enab
 Route::get('/admin/runsheet', 'Admin\RunsheetController@create')->name('runsheet.add');
 Route::get('/admin/runsheet-validate', 'Admin\RunsheetController@runsheetValidation')->name('runsheet.validate');
 Route::post('/admin/runsheet/create', 'Admin\RunsheetController@createRunsheet')->name('runsheet.create');
+Route::get('/admin/runsheet/list', 'Admin\RunsheetController@index')->name('runsheet.index');
 
 //Reports
 Route::get('/admin/reports/shipment', 'Admin\ReportsController@shipmentReport')->name('shipment.report');

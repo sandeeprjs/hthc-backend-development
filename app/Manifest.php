@@ -10,11 +10,9 @@ use App\Booking;
 
 class Manifest extends Model
 {
-    //
     use SoftDeletes;
 
     protected $appends = ['sender_branch', 'receiver_branch', 'sender_franchisee', 'receiver_franchisee'];
-
 
     protected $fillable = [
         'manifest_type',
@@ -37,60 +35,83 @@ class Manifest extends Model
         'office_type'
     ];
 
-    public function branchSender(){
-        return $this->hasOne(Branch::class,'id','sender_id');
-    }
-    public function branchReceiver(){
-        return $this->hasOne(Branch::class,'id','receiver_id');
-    }
-
-    public function franchiseeSender(){
-        return $this->hasOne(Franchisee::class,'id','sender_id');
-    }
-    public function franchiseeReceiver(){
-        return $this->hasOne(Franchisee::class,'id','receiver_id');
+    // Change relationships to belongsTo
+    public function sender_branch()
+    {
+        return $this->belongsTo(Branch::class, 'sender_id', 'id')
+            ->when($this->sender_type === 'BR', function ($query) {
+                return $query->where('branch_type', 'BR');
+            });
     }
 
-    public function getSenderBranchAttribute() {
-       return $sender = $this->branchSender()->select(['code','branch_name'])->first();
-        
+    public function receiver_branch()
+    {
+        return $this->belongsTo(Branch::class, 'receiver_id', 'id')
+            ->when($this->receiver_type === 'BR', function ($query) {
+                return $query->where('branch_type', 'BR');
+            });
     }
 
-    public function getReceiverBranchAttribute() {
-       return $receiver = $this->branchReceiver()->select(['code','branch_name'])->first();
-        
+    public function sender_franchisee()
+    {
+        return $this->belongsTo(Franchisee::class, 'sender_id', 'id')
+            ->when($this->sender_type === 'FR', function ($query) {
+                return $query->where('franchisee_type', 'FR');
+            });
     }
 
-    public function getSenderFranchiseeAttribute() {
-        return $receiver = $this->franchiseeSender()->select(['code','enterprise_name'])->first();
-        
+    public function receiver_franchisee()
+    {
+        return $this->belongsTo(Franchisee::class, 'receiver_id', 'id')
+            ->when($this->receiver_type === 'FR', function ($query) {
+                return $query->where('franchisee_type', 'FR');
+            });
     }
 
-    public function getReceiverFranchiseeAttribute() {
-       return $receiver = $this->franchiseeReceiver()->select(['code','enterprise_name'])->first();
-       
+    // Simplified branch method
+    public function branch()
+    {
+        return $this->sender_type === 'BR'
+            ? $this->sender_branch()
+            : $this->sender_franchisee();
     }
 
-   
-    public function booking(){
-        return $this->hasOne(Booking::class,'consg_number','manifest_number');
+    // Accessor methods adjusted to use relationships
+    public function getSenderBranchAttribute()
+    {
+        return $this->sender_type === 'BR'
+            ? $this->sender_branch()->select(['code', 'branch_name'])->first()
+            : null;
     }
 
-    public function user(){
-        return $this->hasOne(User::class,'id','user_id');
+    public function getReceiverBranchAttribute()
+    {
+        return $this->receiver_type === 'BR'
+            ? $this->receiver_branch()->select(['code', 'branch_name'])->first()
+            : null;
     }
 
-    // public function pincodeOrigin(){
+    public function getSenderFranchiseeAttribute()
+    {
+        return $this->sender_type === 'FR'
+            ? $this->sender_franchisee()->select(['code', 'enterprise_name'])->first()
+            : null;
+    }
 
-    //     //return $this->belongsTo(Pincode::class, 'id', 'origin_pincode_id'); 
-    //     return $this->hasOne(Pincode::class, 'origin_pincode_id'); 
-    // }
-    // public function pincodeDestination(){
+    public function getReceiverFranchiseeAttribute()
+    {
+        return $this->receiver_type === 'FR'
+            ? $this->receiver_franchisee()->select(['code', 'enterprise_name'])->first()
+            : null;
+    }
 
-    //     // return $this->belongsTo(Pincode::class,'id', 'dest_pincode_id'); 
-    //     return $this->hasOne(Pincode::class, 'id', 'dest_pincode_id'); 
-    // }
+    public function booking()
+    {
+        return $this->hasOne(Booking::class, 'consg_number', 'manifest_number');
+    }
 
-    
-
+    public function user()
+    {
+        return $this->hasOne(User::class, 'id', 'user_id');
+    }
 }

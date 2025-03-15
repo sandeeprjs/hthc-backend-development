@@ -1,0 +1,746 @@
+/**
+ * Global Form & UI Styles for HTHC Logistics System
+ * This CSS ensures consistent form styling across all pages and improves mobile responsiveness
+ */
+
+/* Base Form Elements */
+.form-control,
+.select2-container .select2-selection--single,
+.select2-container--default .select2-selection--single,
+.input-group .form-control {
+    height: 38px !important;
+    padding: 0.375rem 0.75rem;
+    font-size: 0.9rem;
+    line-height: 1.5;
+    color: #495057;
+    background-color: #fff;
+    background-clip: padding-box;
+    border: 1px solid #ced4da;
+    border-radius: 0.25rem;
+    transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+    width: 100%;
+}
+
+/* Select2 Styles */
+.select2-container {
+    width: 100% !important;
+    max-width: 100% !important;
+}
+
+.select2-container--default .select2-selection--single .select2-selection__rendered {
+    line-height: 36px;
+    padding-left: 12px;
+    color: #495057;
+}
+
+.select2-container--default .select2-selection--single .select2-selection__arrow {
+    height: 36px;
+}
+
+.select2-dropdown {
+    border-color: #80bdff;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.select2-search--dropdown .select2-search__field {
+    padding: 8px;
+    border-radius: 4px;
+}
+
+.select2-container--default .select2-results__option--highlighted[aria-selected] {
+    background-color: #3490dc;
+}
+
+/* Form Layout */
+.booking-card,
+.vol-card {
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    padding: 1.25rem !important;
+    margin-bottom: 1.25rem;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    transition: box-shadow 0.3s ease;
+}
+
+.booking-card:hover,
+.vol-card:hover {
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.15);
+}
+
+.form-group {
+    margin-bottom: 1rem;
+}
+
+.form-row {
+    display: flex;
+    flex-wrap: wrap;
+    margin-right: -5px;
+    margin-left: -5px;
+}
+
+.form-row > .col,
+.form-row > [class*="col-"] {
+    padding-right: 5px;
+    padding-left: 5px;
+}
+
+.form-check {
+    padding-left: 1.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.form-check-input {
+    margin-left: -1.5rem;
+}
+
+/* Filter Form Layout */
+.filter-form {
+    display: flex;
+    flex-wrap: wrap;
+    margin-bottom: 1rem;
+}
+
+.filter-form .form-group {
+    flex: 0 0 auto;
+    width: 25%;
+    padding-right: 10px;
+    margin-bottom: 15px;
+}
+
+.filter-form .date-range-group {
+    flex: 0 0 auto;
+    width: 25%;
+    padding-right: 10px;
+}
+
+.filter-form .input-daterange {
+    display: flex;
+}
+
+.filter-form .input-daterange input {
+    width: 50%;
+}
+
+.filter-form .button-group {
+    display: flex;
+    align-items: flex-end;
+}
+
+.filter-form .button-group .btn {
+    margin-right: 5px;
+}
+
+/* Booking Table */
+.booking-table {
+    width: 100%;
+    overflow-x: auto;
+}
+
+.booking-table th,
+.booking-table td {
+    white-space: nowrap;
+}
+
+.booking-actions {
+    white-space: nowrap;
+}
+
+/* Textarea Styling */
+textarea.form-control {
+    min-height: 80px !important;
+    resize: vertical;
+}
+
+/* Button Styling */
+.btn {
+    font-weight: 500;
+    padding: 0.375rem 0.75rem;
+    border-radius: 0.25rem;
+    transition: all 0.2s ease-in-out;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+}
+
+.btn-primary {
+    background-color: #3490dc;
+    border-color: #3490dc;
+}
+
+.btn-primary:hover,
+.btn-primary:focus {
+    background-color: #2779bd;
+    border-color: #2779bd;
+    box-shadow: 0 0 0 0.2rem rgba(52, 144, 220, 0.25);
+}
+
+.btn-secondary {
+    background-color: #6c757d;
+    border-color: #6c757d;
+}
+
+.btn-secondary:hover,
+.btn-secondary:focus {
+    background-color: #5a6268;
+    border-color: #5a6268;
+    box-shadow: 0 0 0 0.2rem rgba(108, 117, 125, 0.25);
+}
+
+.btn-sm {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.875rem;
+    line-height: 1.5;
+    border-radius: 0.2rem;
+}
+
+/* Title Styling */
+.sb-page-header-title {
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
+}
+
+.sb-page-header-content {
+    padding: 1rem 0;
+}
+
+/* Table Styling */
+.table {
+    width: 100%;
+    margin-bottom: 1rem;
+    color: #212529;
+    border-collapse: collapse;
+}
+
+.table thead th {
+    vertical-align: bottom;
+    border-bottom: 2px solid #dee2e6;
+    background-color: #f8f9fa;
+    font-weight: 600;
+    padding: 0.75rem;
+}
+
+.table td {
+    padding: 0.75rem;
+    vertical-align: middle;
+    border-top: 1px solid #dee2e6;
+}
+
+.table-responsive {
+    display: block;
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+.table-bordered {
+    border: 1px solid #dee2e6;
+}
+
+/* Pagination */
+.pagination {
+    display: flex;
+    justify-content: center;
+    padding-left: 0;
+    list-style: none;
+    border-radius: 0.25rem;
+    margin: 1rem 0;
+}
+
+.pagination li {
+    margin: 0 3px;
+}
+
+.pagination li a,
+.pagination li span {
+    position: relative;
+    display: block;
+    padding: 0.5rem 0.75rem;
+    margin-left: -1px;
+    line-height: 1.25;
+    color: #3490dc;
+    background-color: #fff;
+    border: 1px solid #dee2e6;
+    transition: all 0.2s ease-in-out;
+}
+
+.pagination li.active span {
+    background-color: #3490dc;
+    border-color: #3490dc;
+    color: white;
+}
+
+.pagination li.disabled span {
+    color: #6c757d;
+    pointer-events: none;
+}
+
+/* Form Validation */
+.is-invalid {
+    border-color: #e3342f !important;
+}
+
+.invalid-feedback {
+    display: block;
+    width: 100%;
+    margin-top: 0.25rem;
+    font-size: 0.875em;
+    color: #e3342f;
+}
+
+/* Mobile Responsiveness */
+@media (max-width: 992px) {
+    .container {
+        max-width: 100%;
+        padding-right: 15px;
+        padding-left: 15px;
+    }
+
+    .col-md-3, .col-md-4, .col-md-6 {
+        padding-right: 10px;
+        padding-left: 10px;
+    }
+
+    .form-row > .col,
+    .form-row > [class*="col-"] {
+        padding-right: 10px;
+        padding-left: 10px;
+    }
+
+    .booking-card,
+    .vol-card {
+        padding: 1rem !important;
+    }
+
+    .filter-form .form-group,
+    .filter-form .date-range-group {
+        width: 33.33%;
+    }
+}
+
+@media (max-width: 768px) {
+    /* Stack form elements on mobile */
+    .form-row {
+        flex-direction: column;
+    }
+
+    .form-row > .col,
+    .form-row > [class*="col-"] {
+        padding-right: 0;
+        padding-left: 0;
+        flex: 0 0 100%;
+        max-width: 100%;
+    }
+
+    .col-md-3, .col-md-4, .col-md-6 {
+        flex: 0 0 100%;
+        max-width: 100%;
+        margin-bottom: 0.5rem;
+    }
+
+    /* Booking page layout adjustment */
+    .row {
+        margin-right: -10px;
+        margin-left: -10px;
+    }
+
+    .col-6 {
+        flex: 0 0 100%;
+        max-width: 100%;
+        padding-right: 10px;
+        padding-left: 10px;
+    }
+
+    /* Fix select2 on mobile */
+    .select2-container {
+        width: 100% !important;
+    }
+
+    /* Adjust buttons on mobile */
+    .btn {
+        display: block;
+        width: 100%;
+        margin-bottom: 0.5rem;
+    }
+
+    .btn-group .btn {
+        display: inline-block;
+        width: auto;
+    }
+
+    /* Fix tables on mobile */
+    .table-responsive {
+        border: 0;
+    }
+
+    .table-responsive table {
+        min-width: 700px;
+    }
+
+    .filter-form .form-group,
+    .filter-form .date-range-group {
+        width: 50%;
+    }
+}
+
+/* Fix for datepicker */
+.input-daterange {
+    display: flex;
+    flex-wrap: wrap;
+}
+
+.input-daterange input {
+    border-radius: 0.25rem !important;
+    margin-right: 0.5rem;
+}
+
+@media (max-width: 576px) {
+    .input-daterange {
+        flex-direction: column;
+    }
+
+    .input-daterange input {
+        margin-bottom: 0.5rem;
+    }
+
+    /* Make filter forms more usable on small screens */
+    .col-md-3 {
+        margin-bottom: 0.75rem;
+    }
+
+    /* Adjust header on mobile */
+    .sb-page-header-content {
+        flex-direction: column;
+    }
+
+    .sb-page-header-content .d-flex {
+        flex-direction: column;
+    }
+
+    .sb-page-header-content .dropdown {
+        margin-top: 1rem;
+        align-self: flex-start;
+    }
+
+    .filter-form .form-group,
+    .filter-form .date-range-group {
+        width: 100%;
+    }
+}
+
+/* Additional utilities */
+.m-0 { margin: 0 !important; }
+.p-0 { padding: 0 !important; }
+.mb-0 { margin-bottom: 0 !important; }
+.mt-2 { margin-top: 0.5rem !important; }
+.mb-2 { margin-bottom: 0.5rem !important; }
+.pb-3 { padding-bottom: 1rem !important; }
+.mt-3 { margin-top: 1rem !important; }
+.mb-3 { margin-bottom: 1rem !important; }
+.mb-4 { margin-bottom: 1.5rem !important; }
+
+/* Specific forms fix for booking */
+.mx-auto.form-row {
+    flex-wrap: wrap;
+    flex-direction: row;
+}
+
+/* Fix for create and edit forms */
+@media (max-width: 768px) {
+    .col-8.mx-auto,
+    .col-10.mx-auto {
+        max-width: 100%;
+        padding-right: 15px;
+        padding-left: 15px;
+        margin-right: 0 !important;
+        margin-left: 0 !important;
+        flex: 0 0 100%;
+    }
+
+    /* Fix for volumetric card sections */
+    #sec-length, #sec-breadth, #sec-height,
+    #sec-weight, #sec-vol-weight,
+    .form-group.col-md-2 {
+        flex: 0 0 100%;
+        max-width: 100%;
+        margin-bottom: 0.5rem;
+    }
+}
+
+
+/**
+ * Compact Global Form Styles for HTHC Logistics System
+ */
+
+/* More compact form elements */
+.form-control,
+.select2-container .select2-selection--single,
+.select2-container--default .select2-selection--single,
+.input-group .form-control {
+    height: 32px !important; /* Reduced height */
+    padding: 0.25rem 0.5rem; /* Reduced padding */
+    font-size: 0.85rem; /* Smaller font */
+    line-height: 1.4;
+}
+
+/* Compact spacing */
+.booking-card,
+.vol-card {
+    padding: 0.75rem !important; /* Reduced padding */
+    margin-bottom: 0.75rem; /* Less bottom margin */
+}
+
+.form-group {
+    margin-bottom: 0.5rem; /* Reduced margin between form elements */
+}
+
+/* Smaller spacing for form rows */
+.form-row {
+    margin-right: -3px;
+    margin-left: -3px;
+}
+
+.form-row > .col,
+.form-row > [class*="col-"] {
+    padding-right: 3px;
+    padding-left: 3px;
+}
+
+/* Compact textareas */
+textarea.form-control {
+    min-height: 60px !important; /* Smaller textareas */
+}
+
+/* Smaller buttons */
+.btn {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.85rem;
+}
+
+/* Compact tables */
+.table th,
+.table td {
+    padding: 0.4rem; /* Reduced cell padding */
+    font-size: 0.85rem; /* Smaller text */
+}
+
+/* Tighter section spacing */
+.sb-page-header-content {
+    padding: 0.5rem 0;
+    margin-bottom: 0.5rem;
+}
+
+.sb-page-header-title {
+    font-size: 1.25rem;
+    margin-bottom: 0.5rem;
+}
+
+/* Compact Select2 */
+.select2-container--default .select2-selection--single .select2-selection__rendered {
+    line-height: 30px;
+    padding-left: 8px;
+}
+
+.select2-container--default .select2-selection--single .select2-selection__arrow {
+    height: 30px;
+}
+
+/* Compact card title */
+.booking-card h4,
+.vol-card h4 {
+    font-size: 1rem;
+    margin-bottom: 0.5rem;
+}
+
+/* Make sure labels are compact */
+label {
+    margin-bottom: 0.25rem;
+    font-size: 0.85rem;
+}
+
+/* Utility classes for compact spacing */
+.py-5 {
+    padding-top: 1rem !important;
+    padding-bottom: 1rem !important;
+}
+
+.mb-4 {
+    margin-bottom: 0.75rem !important;
+}
+
+/* For filter sections */
+.col-md-3.pb-3 {
+    padding-bottom: 0.5rem !important;
+}
+
+/* Specific form layouts */
+.col-8.mx-auto,
+.col-10.mx-auto {
+    padding-right: 5px;
+    padding-left: 5px;
+}
+
+/* More compact mobile view */
+@media (max-width: 768px) {
+    .row {
+        margin-right: -5px;
+        margin-left: -5px;
+    }
+
+    .col-6, .col-md-3, .col-md-4, .col-md-6 {
+        padding-right: 5px;
+        padding-left: 5px;
+    }
+
+    .form-row > .col,
+    .form-row > [class*="col-"] {
+        margin-bottom: 0.35rem;
+    }
+}
+
+/* Fix for datepicker in compact mode */
+.input-daterange input {
+    padding: 0.25rem 0.5rem;
+}
+
+/* Layout adjustments to save vertical space */
+.row {
+    margin-bottom: 0.5rem;
+}
+
+/* Specific fix for booking forms */
+#sec-length, #sec-breadth, #sec-height,
+#sec-weight, #sec-vol-weight,
+.form-group.col-md-2 {
+    padding-left: 5px;
+    padding-right: 5px;
+}
+
+/* Booking filter styles */
+.booking-filters {
+    margin-bottom: 1.5rem;
+}
+
+.booking-filters .form-control {
+    height: 34px !important;
+}
+
+.booking-filters .btn-group {
+    display: flex;
+}
+
+.booking-filters .btn-group .btn {
+    margin-right: 5px;
+    height: 34px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Date picker specific styles */
+.datepicker {
+    border-radius: 4px !important;
+}
+
+/* Responsive adjustments */
+@media (max-width: 992px) {
+    .booking-filters .btn-group {
+        display: flex;
+        width: 100%;
+    }
+
+    .booking-filters .btn-group .btn {
+        flex: 1;
+    }
+}
+
+@media (max-width: 576px) {
+    .booking-filters .col-md-6 {
+        margin-bottom: 10px;
+    }
+
+    .booking-filters .btn-group {
+        flex-direction: column;
+    }
+
+    .booking-filters .btn-group .btn {
+        margin-bottom: 5px;
+        margin-right: 0;
+    }
+}
+
+
+/* Filter row fix - makes filters display horizontally */
+.container form.row {
+    display: flex;
+    flex-wrap: wrap;
+    margin-right: -10px;
+    margin-left: -10px;
+}
+
+.container form.row > div {
+    padding-right: 10px;
+    padding-left: 10px;
+    margin-bottom: 15px;
+}
+
+/* Fix date range inputs to display side by side */
+.input-daterange.input-group {
+    display: flex;
+    flex-wrap: nowrap;
+}
+
+.input-daterange.input-group input {
+    width: 50%;
+}
+
+/* Fix button alignment */
+.container form.row > div:last-child {
+    display: flex;
+    align-items: flex-start;
+}
+
+.container form.row > div:last-child .btn {
+    margin-right: 8px;
+}
+
+/* Make filters responsive */
+@media (min-width: 992px) {
+    .container form.row > div {
+        flex: 0 0 25%;
+        max-width: 25%;
+    }
+
+    .container form.row > div:nth-last-child(2) {
+        flex: 0 0 33.333%;
+        max-width: 33.333%;
+    }
+}
+
+@media (min-width: 768px) and (max-width: 991px) {
+    .container form.row > div {
+        flex: 0 0 33.333%;
+        max-width: 33.333%;
+    }
+}
+
+@media (max-width: 767px) {
+    .container form.row > div {
+        flex: 0 0 50%;
+        max-width: 50%;
+    }
+
+    .container form.row > div:last-child {
+        flex: 0 0 100%;
+        max-width: 100%;
+    }
+}
+
+@media (max-width: 575px) {
+    .container form.row > div {
+        flex: 0 0 100%;
+        max-width: 100%;
+    }
+}

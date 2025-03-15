@@ -1,0 +1,386 @@
+// Navigation System Styles
+
+// Base Navigation
+.navigation,
+#sidebar,
+.navbar.side-bar {
+    width: 240px;
+    min-width: 240px;
+    position: fixed;
+    height: 100vh;
+    overflow-y: auto;
+    background: linear-gradient(180deg, #1c2536 0%, #23394d 100%);
+    color: #fff;
+    z-index: 1030;
+    transition: all 0.3s ease;
+    left: 0;
+    box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+}
+
+// Mobile Toggle Button
+.sidebar-toggle {
+    position: fixed;
+    top: 15px;
+    left: 15px;
+    z-index: 1031;
+    background-color: #1c2536;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    padding: 10px 12px;
+    display: none;
+    cursor: pointer;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+
+    @media (max-width: 767.98px) {
+        display: block;
+    }
+}
+
+// Mobile Navigation States
+@media (max-width: 767.98px) {
+    // Start with hiding the sidebar off-screen
+    .navigation,
+    #sidebar,
+    .navbar.side-bar {
+        transform: translateX(-100%);
+        left: 0 !important;
+        visibility: hidden;
+        width: 240px !important;
+    }
+
+    // When active, force it to be visible
+    .navigation.mobile-open,
+    #sidebar.show,
+    .navbar.side-bar.show {
+        transform: translateX(0) !important;
+        left: 0 !important;
+        visibility: visible !important;
+        box-shadow: 2px 0 10px rgba(0, 0, 0, 0.3) !important;
+        z-index: 1050 !important;
+    }
+
+    // Make sure the container adjusts
+    .main-container {
+        margin-left: 0 !important;
+        width: 100% !important;
+    }
+
+    // Make sure toggle button is visible
+    .sidebar-toggle {
+        display: block !important;
+        z-index: 1060 !important;
+        background-color: #1c2536 !important;
+    }
+
+    // Ensure overlay is behind the sidebar but above content
+    #sidebarOverlay,
+    #mobileNavOverlay,
+    .sidebar-overlay {
+        z-index: 1040 !important;
+
+        &.show {
+            display: block !important;
+        }
+    }
+}
+
+// Overlays
+#sidebarOverlay,
+#mobileNavOverlay,
+.sidebar-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 1029;
+    display: none;
+}
+
+// Close Button (Mobile)
+.sidebar-close {
+    display: none;
+    text-align: right;
+    padding: 15px;
+
+    @media (max-width: 767.98px) {
+        display: block;
+    }
+
+    .btn-close-sidebar {
+        background: none;
+        border: none;
+        color: rgba(255, 255, 255, 0.7);
+        font-size: 1.2rem;
+        cursor: pointer;
+
+        &:hover {
+            color: #ffffff;
+        }
+    }
+}
+
+// Logo Section
+.logo {
+    padding: 20px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+
+    img {
+        max-height: 40px;
+        margin-bottom: 15px;
+        display: block;
+    }
+
+    .navbar-brand {
+        display: block;
+        text-align: center;
+    }
+}
+
+// User Info
+.user-info {
+    display: flex;
+    align-items: center;
+    padding: 10px 0;
+
+    .user-avatar {
+        width: 40px;
+        height: 40px;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.2rem;
+        margin-right: 10px;
+    }
+
+    .user-details {
+        flex: 1;
+
+        .user-name {
+            font-weight: 600;
+            font-size: 0.9rem;
+            color: #ffffff;
+        }
+
+        .user-role {
+            font-size: 0.75rem;
+            color: rgba(255, 255, 255, 0.6);
+        }
+    }
+}
+
+// Navigation Sections
+.side-bar-nav {
+    .nav-section {
+        margin-bottom: 10px;
+        padding-top: 10px;
+
+        .nav-section-title {
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: rgba(255, 255, 255, 0.5);
+            padding: 10px 20px;
+            font-weight: 600;
+        }
+    }
+}
+
+// Navigation Links and Accordions
+.nav-link,
+.accordion {
+    display: flex;
+    align-items: center;
+    padding: 12px 20px;
+    color: rgba(255, 255, 255, 0.7);
+    text-decoration: none;
+    border: none;
+    background: none;
+    font-size: 0.9rem;
+    cursor: pointer;
+    width: 100%;
+    text-align: left;
+    transition: all 0.2s ease;
+    margin: 2px 0;
+    border-radius: 0;
+    position: relative;
+
+    i:not(.submenu-icon) {
+        margin-right: 10px;
+        width: 20px;
+        text-align: center;
+        font-size: 1rem;
+    }
+
+    span {
+        flex: 1;
+    }
+
+    &:hover {
+        color: #ffffff;
+        background-color: rgba(255, 255, 255, 0.05);
+    }
+
+    &.active, &.accordion-active {
+        color: #ffffff;
+        background: linear-gradient(90deg, rgba(66, 133, 244, 0.2) 0%, rgba(66, 133, 244, 0) 100%);
+        border-left: 3px solid #4285F4;
+    }
+}
+
+// Submenu Icon
+.submenu-icon, .fa-chevron-right {
+    margin-left: auto;
+    transition: transform 0.3s ease;
+    font-size: 0.7rem;
+}
+
+.accordion.active .submenu-icon,
+.accordion.accordion-active .submenu-icon,
+.accordion.accordion-active .fa-chevron-right {
+    transform: rotate(90deg);
+}
+
+// Submenu Styling
+.submenu {
+    display: none;
+    background-color: rgba(0, 0, 0, 0.15);
+    overflow: hidden;
+    padding: 5px 0;
+
+    a {
+        display: flex;
+        align-items: center;
+        padding: 8px 20px 8px 50px;
+        color: rgba(255, 255, 255, 0.6);
+        text-decoration: none;
+        font-size: 0.85rem;
+        transition: all 0.2s ease;
+
+        &:hover {
+            color: #ffffff;
+            background-color: rgba(255, 255, 255, 0.05);
+        }
+
+        &.active {
+            color: #ffffff;
+            background-color: rgba(255, 255, 255, 0.05);
+        }
+    }
+
+    .submenu-dot {
+        font-size: 0.4rem;
+        margin-right: 8px;
+    }
+}
+
+// Sidebar Footer
+.sidebar-footer {
+    padding: 15px 0;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    margin-top: auto;
+
+    .logout-link {
+        color: rgba(255, 255, 255, 0.7);
+        padding: 10px 20px;
+        display: flex;
+        align-items: center;
+        text-decoration: none;
+
+        &:hover {
+            color: #ffffff;
+            background-color: rgba(255, 255, 255, 0.05);
+        }
+
+        i {
+            margin-right: 10px;
+        }
+    }
+}
+
+// Main Container - adjusts with navigation
+.main-container {
+    padding: 1.5rem;
+    margin-left: 240px;
+    width: calc(100% - 240px);
+    transition: all 0.3s ease;
+    min-height: 100vh;
+
+    @media (max-width: 767.98px) {
+        margin-left: 0;
+        width: 100%;
+    }
+}
+
+// Global Loader Styling
+#global-loader {
+    position: fixed;
+    z-index: 9999;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(255, 255, 255, 0.8);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    display: none;
+
+    .spinner {
+        width: 40px;
+        height: 40px;
+        border: 4px solid rgba(0, 0, 0, 0.1);
+        border-radius: 50%;
+        border-top-color: #3490dc;
+        animation: spin 1s ease-in-out infinite;
+    }
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+#sidebar.show,
+.navigation.mobile-open,
+.navbar.side-bar.show {
+    left: 0 !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    z-index: 1050 !important; // Higher z-index to ensure it's on top
+    display: block !important;
+    width: 240px !important;
+}
+
+// Fix for overlay
+#sidebarOverlay.show,
+#mobileNavOverlay.show,
+.sidebar-overlay.show {
+    display: block !important;
+    z-index: 1040 !important;
+}
+
+// Fix for possible overflow hidden issue
+body.navigation-open {
+    overflow: hidden !important;
+}
+
+// Debug style to track when classes are added
+.mobile-open::before,
+.show::before {
+    content: "MENU OPEN";
+    position: fixed;
+    top: 5px;
+    right: 5px;
+    background: red;
+    color: white;
+    z-index: 9999;
+    padding: 5px;
+    font-size: 10px;
+    pointer-events: none;
+}

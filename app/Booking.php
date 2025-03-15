@@ -9,6 +9,9 @@ class Booking extends Model
 {
     use SoftDeletes;
 
+    // Add with property to eagerly load these relationships by default
+    protected $with = ['customer', 'pincode', 'subscription', 'user'];
+
     protected $appends = ['origin_pincode', 'subs_name', 'branch_details'];
 
     protected $fillable = [
@@ -67,13 +70,7 @@ class Booking extends Model
     }
 
     public function getSubsNameAttribute() {
-        $subscription = $this->subscription()->select(['name'])->first();
-        if ($subscription) {
-            return $subscription->name;
-        } else {
-            return null;
-        }
-
+        return $this->subscription->name ?? null;
     }
 
     public function pincode() {
@@ -81,8 +78,7 @@ class Booking extends Model
     }
 
     public function getOriginPincodeAttribute() {
-        $pincode = $this->pincode()->select(['pincode'])->first();
-        return $pincode->pincode ?? null;
+        return $this->pincode->pincode ?? null;
     }
 
     public function customer() {
@@ -93,68 +89,53 @@ class Booking extends Model
         return $this->belongsTo(Branch::class, 'dest_branch_id');
     }
 
-    public function bookingBranch(){
-        return $this->belongsTo(Branch::class, 'origin_office_id')->where('branch_type','HO')->orWhere('branch_type','BR');
-
+    public function bookingBranch() {
+        return $this->belongsTo(Branch::class, 'origin_office_id')
+            ->where(function($query) {
+                $query->where('branch_type', 'HO')
+                    ->orWhere('branch_type', 'BR');
+            });
     }
 
-    public function getBookingBranchAttribute(){
-
-        $bookingBranch =  $this->bookingBranch()->select(['code'])->first();
-
-        if($bookingBranch){
-        return $bookingBranch['code'];
-        }
-        return null;
-
-   }
-   public function getBranchDetailsAttribute(){
-
-    $bookingBranch =  $this->bookingBranch()->select(['code','branch_name'])->first();
-
-    if($bookingBranch){
-    return $bookingBranch;
+    public function getBookingBranchAttribute() {
+        return $this->bookingBranch->code ?? null;
     }
-    return null;
 
-}
+    public function getBranchDetailsAttribute() {
+        return $this->bookingBranch ?? null;
+    }
 
-    public function bookingFranchisee(){
+    public function bookingFranchisee() {
         return $this->belongsTo(Franchisee::class, 'origin_office_id');
-
     }
 
-    public function getBookingFranchiseeAttribute(){
-
-         $bookingFranchisee =  $this->bookingFranchisee()->select(['code'])->first();
-         if($bookingFranchisee){
-             return $bookingFranchisee->code;
-         }
-         return null;
-
+    public function getBookingFranchiseeAttribute() {
+        return $this->bookingFranchisee->code ?? null;
     }
 
     public function office() {
-        $officeType = $this->office_type;
-
-        if ($officeType == 'FR') {
+        if ($this->origin_office_type == 'FR') {
             return $this->belongsTo(Franchisee::class, 'origin_office_id');
         } else {
-            return $this->belongsTo(Branch::class, 'origin_office_id')->where('branch_type','HO')->orWhere('branch_type','BR');
+            return $this->belongsTo(Branch::class, 'origin_office_id')
+                ->where(function($query) {
+                    $query->where('branch_type', 'HO')
+                        ->orWhere('branch_type', 'BR');
+                });
         }
     }
 
-    public function user(){
-        return $this->hasOne(User::class,'id','booking_user_id');
+    public function user() {
+        return $this->belongsTo(User::class, 'booking_user_id');
     }
 
-    public function returnReason(){
-        return $this->hasOne(ConsignmentReturn::class,'consg_number','consg_number');
+    public function returnReason() {
+        return $this->hasOne(ConsignmentReturn::class, 'consg_number', 'consg_number');
     }
-    
+
     public function totalWeightDox() {
-        return $this->hasMany(Booking::class)->selectRaw(['sum(weight) as dox_weight','id'])->where('consg_type',$this->consg_type);
-       // return $this->hasMany(Booking::class,'weight')->where('consg_type', 'dox')->sum('weight');
+        return $this->hasMany(Booking::class)
+            ->selectRaw('SUM(weight) as dox_weight, id')
+            ->where('consg_type', $this->consg_type);
     }
-
 }

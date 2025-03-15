@@ -1,8 +1,31 @@
 body{
     font-size: 14px;
+    overflow-x: hidden;
+    margin: 0;
+    padding: 0;
 }
+
+// This is the main fix for the alignment issue
 .main-container{
-    padding-left: 210px;
+    padding-left: 240px !important; // Match exactly with sidebar width (15rem = 240px)
+    width: 100%;
+    transition: padding-left 0.3s ease;
+}
+
+// Media query for mobile devices
+@media (max-width: 768px) {
+    .main-container {
+        padding-left: 0 !important; // Remove padding when sidebar is hidden on mobile
+    }
+
+    .dashboard-container {
+        padding: 1rem;
+    }
+}
+
+// Dashboard container styling
+.dashboard-container {
+    padding: 1.5rem;
     width: 100%;
 }
 
@@ -35,11 +58,6 @@ body{
 
 .sb-page-header-title{
     font-size: 24px;
-    //padding-left: 20px;
-}
-
-.sb-page-header-subtitle{
-    //padding-left: 20px;
 }
 
 .select2-selection--multiple{
@@ -117,8 +135,124 @@ textarea.form-control{
 
 .booking-filter{
     padding-top: 20px;
-    .form-control{
+}
 
+// Dashboard stats cards - updated for better mobile experience
+.stats-row {
+    margin-bottom: 2rem;
+}
+
+.stats-card {
+    display: flex;
+    align-items: center;
+    padding: 1.25rem;
+    border-radius: 0.5rem;
+    color: white;
+    height: 100%;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    transition: transform 0.2s;
+
+    &:hover {
+        transform: translateY(-3px);
+    }
+
+    .card-icon {
+        flex: 0 0 auto;
+        font-size: 2rem;
+        margin-right: 1rem;
+    }
+
+    .card-data {
+        flex: 1;
+
+        h2 {
+            font-size: 1.75rem;
+            font-weight: bold;
+            margin-bottom: 0.25rem;
+        }
+
+        p {
+            margin-bottom: 0;
+            font-size: 0.9rem;
+        }
+    }
+}
+
+.bookings-card {
+    background: linear-gradient(45deg, #ff7043, #ff9a76);
+}
+
+.transit-card {
+    background: linear-gradient(45deg, #5e35b1, #7c4dff);
+}
+
+.delivered-card {
+    background: linear-gradient(45deg, #00acc1, #26c6da);
+}
+
+.returned-card {
+    background: linear-gradient(45deg, #ec407a, #f48fb1);
+}
+
+// Chart cards
+.chart-card {
+    background: white;
+    border-radius: 0.5rem;
+    padding: 1.25rem;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    margin-bottom: 1rem;
+
+    h5 {
+        font-weight: 600;
+        color: #35247d;
+    }
+}
+
+.chart-container {
+    width: 100%;
+    position: relative;
+    min-height: 250px;
+}
+
+.weekly-chart {
+    min-height: 300px;
+}
+
+// Quick links
+.quick-links {
+    padding: 0.5rem;
+}
+
+.quick-link-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 1rem 0.5rem;
+    border-radius: 0.5rem;
+    background: #f8f9fa;
+    height: 100%;
+    transition: all 0.2s;
+    color: #35247d;
+    text-decoration: none;
+
+    &:hover {
+        background: #e9ecef;
+        transform: translateY(-3px);
+        color: #3D299E;
+        text-decoration: none;
+    }
+
+    .icon-container {
+        font-size: 1.75rem;
+        margin-bottom: 0.5rem;
+    }
+
+    p {
+        margin-bottom: 0;
+        font-size: 0.85rem;
+        font-weight: 500;
     }
 }
 
@@ -176,7 +310,6 @@ textarea.form-control{
     }
 }
 
-
 .profile-card{
     padding: 40px;
     padding-left: 0px;
@@ -218,8 +351,8 @@ textarea.form-control{
     border-radius: 5px;
 }
 
-.booking-filter  .select2-container{
-  width: 100% !important;
+.booking-filter .select2-container{
+    width: 100% !important;
 }
 
 .booking-filter .form-inline .form-control{
@@ -259,8 +392,6 @@ textarea.form-control{
     }
 }
 
-
-
 .slipper-copy{
     table{
         border-collapse: collapse;
@@ -285,7 +416,6 @@ textarea.form-control{
         .t-title {
             background-color: #35247d;
         }
-
     }
     .t-title{
         background-color: #35247d;
@@ -321,9 +451,3 @@ textarea.form-control{
         width: 100% !important;
     }
 }
-
-
-
-
-
-

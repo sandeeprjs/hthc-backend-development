@@ -1,4 +1,5 @@
-<link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.3/css/select2.min.css" rel="stylesheet" />
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+
 @extends('layouts.app')
 
 @section('content')
@@ -505,8 +506,18 @@
         display:none;
     }
 </style>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.3/js/select2.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
     <script>
+        $(document).ready(function() {
+            // Initialize Select2 for all select elements with the 'select2' class
+            $('.select2').select2({
+                theme: 'bootstrap-5',
+                placeholder: 'Select an option',
+                allowClear: true,
+                width: '100%'
+            });
+        });
         $('#consgType').on('change', function () {
             $("#subscription_id option").remove();
             let docType = $("#consgType").val();
@@ -696,6 +707,67 @@
             let height = $("#sec-height");
             let weight = $("#sec-weight");
             let volWeight = $("#sec-vol-weight");
+
+            $('input[name="consg_number"]').on('blur', function() {
+                const consgNumber = $(this).val().trim();
+
+                if (consgNumber) {
+                    // Show loading indicator
+                    $(this).addClass('is-loading');
+
+                    $.ajax({
+                        url: "{{ url('/admin/validate-consignment') }}",
+                        method: 'get',
+                        data: {
+                            consg_number: consgNumber
+                        },
+                        success: function(result) {
+                            if (result.valid) {
+                                // Valid consignment number
+                                $('input[name="consg_number"]')
+                                    .removeClass('is-invalid')
+                                    .addClass('is-valid');
+                                $('.consg-feedback').remove();
+                            } else {
+                                // Invalid consignment number
+                                $('input[name="consg_number"]')
+                                    .removeClass('is-valid')
+                                    .addClass('is-invalid');
+
+                                // Remove any existing feedback
+                                $('.consg-feedback').remove();
+
+                                // Add error message
+                                $('input[name="consg_number"]').after(
+                                    '<div class="invalid-feedback consg-feedback">' +
+                                    result.message +
+                                    '</div>'
+                                );
+                            }
+                        },
+                        error: function(xhr) {
+                            // Server error
+                            $('input[name="consg_number"]')
+                                .removeClass('is-valid')
+                                .addClass('is-invalid');
+
+                            // Remove any existing feedback
+                            $('.consg-feedback').remove();
+
+                            // Add error message
+                            $('input[name="consg_number"]').after(
+                                '<div class="invalid-feedback consg-feedback">' +
+                                'Error validating consignment number. Please try again.' +
+                                '</div>'
+                            );
+                        },
+                        complete: function() {
+                            // Remove loading indicator
+                            $('input[name="consg_number"]').removeClass('is-loading');
+                        }
+                    });
+                }
+            });
 
             $('#consgType').on('change', function () {
                 let optionVal = $(this).val();

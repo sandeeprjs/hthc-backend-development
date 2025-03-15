@@ -147,7 +147,114 @@
         </div>
     </div>
 </div>
+<style>
+    /* Fix for date range inputs */
+    .input-daterange.input-group {
+        display: flex !important;
+        flex-wrap: nowrap !important;
+        width: 100% !important;
+    }
 
+    .input-daterange.input-group input {
+        width: 50% !important;
+        border-radius: 4px !important;
+        margin-right: 5px !important;
+    }
+
+    .input-daterange.input-group input:last-child {
+        margin-right: 0 !important;
+    }
+
+    /* Filter row fix - makes filters display horizontally */
+    .container form.row {
+        display: flex;
+        flex-wrap: wrap;
+        margin-right: -10px;
+        margin-left: -10px;
+    }
+
+    .container form.row > div {
+        padding-right: 10px;
+        padding-left: 10px;
+        margin-bottom: 15px;
+    }
+
+    /* Fix button alignment */
+    .container form.row > div:last-child {
+        display: flex;
+        align-items: flex-start;
+    }
+
+    .container form.row > div:last-child .btn {
+        margin-right: 8px;
+    }
+
+    /* Make filters responsive */
+    @media (min-width: 992px) {
+        .container form.row > div {
+            flex: 0 0 25%;
+            max-width: 25%;
+        }
+
+        .container form.row > div:nth-last-child(2) {
+            flex: 0 0 33.333%;
+            max-width: 33.333%;
+        }
+    }
+
+    @media (min-width: 768px) and (max-width: 991px) {
+        .container form.row > div {
+            flex: 0 0 33.333%;
+            max-width: 33.333%;
+        }
+    }
+
+    @media (max-width: 767px) {
+        .container form.row > div {
+            flex: 0 0 50%;
+            max-width: 50%;
+        }
+
+        .container form.row > div:last-child {
+            flex: 0 0 100%;
+            max-width: 100%;
+        }
+    }
+
+    @media (max-width: 575px) {
+        .container form.row > div {
+            flex: 0 0 100%;
+            max-width: 100%;
+        }
+    }
+</style>
+
+<script>
+    // Make sure jQuery is loaded before this script
+    document.addEventListener('DOMContentLoaded', function() {
+        // Initialize datepicker directly on each input
+        try {
+            if($.fn.datepicker) {
+                $('input[name="start_date"], input[name="end_date"]').datepicker({
+                    format: 'dd/mm/yyyy',
+                    autoclose: true,
+                    todayHighlight: true
+                });
+
+                // Also try initializing as a range
+                $('.input-daterange').datepicker({
+                    format: 'dd/mm/yyyy',
+                    autoclose: true,
+                    todayHighlight: true
+                });
+            } else {
+                console.error('Datepicker plugin not found');
+            }
+        } catch(e) {
+            console.error('Error initializing datepicker:', e);
+        }
+    });
+</script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.3/js/select2.min.js"></script>
 <script src="https://unpkg.com/bootstrap-datepicker@1.9.0/dist/js/bootstrap-datepicker.min.js"></script>
 <script>

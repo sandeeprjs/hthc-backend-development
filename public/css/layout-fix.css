@@ -1,172 +1,172 @@
-/*!* layout-fix.css - Place this in your public/css directory *!*/
+/* layout-fix.css - Place this in your public/css directory */
 
-/*!* Ensure the app container has proper flex layout *!*/
-/*#app {*/
-/*    display: flex;*/
-/*    min-height: 100vh;*/
-/*}*/
+/* Ensure the app container has proper flex layout */
+#app {
+    display: flex;
+    min-height: 100vh;
+}
 
-/*!* Fix sidebar width to match _side-bar.scss *!*/
-/*.side-bar, .navigation {*/
-/*    width: 12rem !important;*/
-/*    min-width: 12rem !important;*/
-/*    position: fixed;*/
-/*    height: 100vh;*/
-/*    z-index: 1030;*/
-/*}*/
+/* Fix sidebar width to match _side-bar.scss */
+.side-bar, .navigation {
+    width: 12rem !important;
+    min-width: 12rem !important;
+    position: fixed;
+    height: 100vh;
+    z-index: 1030;
+}
 
-/*!* Fix main container to properly offset from sidebar *!*/
-/*.main-container {*/
-/*    flex: 1;*/
-/*    margin-left: 12rem !important;*/
-/*    width: calc(100% - 12rem) !important;*/
-/*    padding: 1rem;*/
-/*    transition: margin-left 0.3s ease;*/
-/*}*/
+/* Fix main container to properly offset from sidebar */
+.main-container {
+    flex: 1;
+    margin-left: 12rem !important;
+    width: calc(100% - 12rem) !important;
+    padding: 1rem;
+    transition: margin-left 0.3s ease;
+}
 
-/*!* Dashboard container padding *!*/
-/*.dashboard-container {*/
-/*    padding: 1.5rem;*/
-/*    width: 100%;*/
-/*}*/
+/* Dashboard container padding */
+.dashboard-container {
+    padding: 1.5rem;
+    width: 100%;
+}
 
-/*!* Fix for mobile responsive layout *!*/
-/*@media (max-width: 768px) {*/
-/*    .side-bar {*/
-/*        transform: translateX(-100%);*/
-/*        transition: transform 0.3s ease;*/
-/*    }*/
+/* Fix for mobile responsive layout */
+@media (max-width: 768px) {
+    .side-bar {
+        transform: translateX(-100%);
+        transition: transform 0.3s ease;
+    }
 
-/*    .side-bar.mobile-active {*/
-/*        transform: translateX(0);*/
-/*    }*/
+    .side-bar.mobile-active {
+        transform: translateX(0);
+    }
 
-/*    .main-container {*/
-/*        margin-left: 0 !important;*/
-/*        width: 100% !important;*/
-/*    }*/
-/*}*/
+    .main-container {
+        margin-left: 0 !important;
+        width: 100% !important;
+    }
+}
 
-/*!* Sidebar overlay for mobile *!*/
-/*.sidebar-overlay {*/
-/*    position: fixed;*/
-/*    top: 0;*/
-/*    left: 0;*/
-/*    right: 0;*/
-/*    bottom: 0;*/
-/*    background-color: rgba(0, 0, 0, 0.5);*/
-/*    z-index: 1025;*/
-/*    display: none;*/
-/*}*/
+/* Sidebar overlay for mobile */
+.sidebar-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 1025;
+    display: none;
+}
 
-/*.sidebar-overlay.active {*/
-/*    display: block;*/
-/*}*/
+.sidebar-overlay.active {
+    display: block;
+}
 
-/*!* Fix for the accordion menu styling *!*/
-/*.submenu {*/
-/*    max-height: 0;*/
-/*    overflow: hidden;*/
-/*    transition: max-height 0.3s ease-out;*/
-/*    background-color: rgba(0, 0, 0, 0.1);*/
-/*}*/
+/* Fix for the accordion menu styling */
+.submenu {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease-out;
+    background-color: rgba(0, 0, 0, 0.1);
+}
 
-/*!* Fix for active accordions *!*/
-/*.accordion.active + .submenu,*/
-/*.accordion.accordion-active + .submenu {*/
-/*    max-height: 1000px; !* A large value that will be adjusted by JS *!*/
-/*}*/
+/* Fix for active accordions */
+.accordion.active + .submenu,
+.accordion.accordion-active + .submenu {
+    max-height: 1000px; /* A large value that will be adjusted by JS */
+}
 
-/*!* Chart container fixes for dashboard *!*/
-/*.chart-container {*/
-/*    width: 100%;*/
-/*    position: relative;*/
-/*    min-height: 250px;*/
-/*}*/
+/* Chart container fixes for dashboard */
+.chart-container {
+    width: 100%;
+    position: relative;
+    min-height: 250px;
+}
 
-/*!* Fix for loading spinner *!*/
-/*#global-loader {*/
-/*    position: fixed;*/
-/*    top: 0;*/
-/*    left: 0;*/
-/*    right: 0;*/
-/*    bottom: 0;*/
-/*    z-index: 9999;*/
-/*    background: rgba(255, 255, 255, 0.7);*/
-/*    display: flex;*/
-/*    justify-content: center;*/
-/*    align-items: center;*/
-/*}*/
+/* Fix for loading spinner */
+#global-loader {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 9999;
+    background: rgba(255, 255, 255, 0.7);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
 
 
-/*!* Add these styles to your layout-fix.css *!*/
+/* Add these styles to your layout-fix.css */
 
-/*!* Dashboard container full width fix *!*/
-/*.dashboard-container {*/
-/*    width: 100%;*/
-/*    padding: 1.5rem;*/
-/*}*/
+/* Dashboard container full width fix */
+.dashboard-container {
+    width: 100%;
+    padding: 1.5rem;
+}
 
-/*!* Stats row proper spacing *!*/
-/*.stats-row {*/
-/*    display: flex;*/
-/*    flex-wrap: wrap;*/
-/*    margin-right: -15px;*/
-/*    margin-left: -15px;*/
-/*    width: 100%;*/
-/*}*/
+/* Stats row proper spacing */
+.stats-row {
+    display: flex;
+    flex-wrap: wrap;
+    margin-right: -15px;
+    margin-left: -15px;
+    width: 100%;
+}
 
-/*!* Fix stats cards spacing and width *!*/
-/*.stats-card {*/
-/*    display: flex;*/
-/*    align-items: center;*/
-/*    padding: 1.25rem;*/
-/*    border-radius: 0.5rem;*/
-/*    color: white;*/
-/*    height: 100%;*/
-/*    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);*/
-/*    transition: transform 0.2s;*/
-/*    width: 100%;*/
-/*    margin-bottom: 1rem;*/
-/*}*/
+/* Fix stats cards spacing and width */
+.stats-card {
+    display: flex;
+    align-items: center;
+    padding: 1.25rem;
+    border-radius: 0.5rem;
+    color: white;
+    height: 100%;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    transition: transform 0.2s;
+    width: 100%;
+    margin-bottom: 1rem;
+}
 
-/*!* Fix col padding to prevent overlap *!*/
-/*.col-md-3 {*/
-/*    padding-right: 15px;*/
-/*    padding-left: 15px;*/
-/*    position: relative;*/
-/*    width: 100%;*/
-/*}*/
+/* Fix col padding to prevent overlap */
+.col-md-3 {
+    padding-right: 15px;
+    padding-left: 15px;
+    position: relative;
+    width: 100%;
+}
 
-/*!* Make sure Bootstrap grid works properly *!*/
-/*.row {*/
-/*    display: flex;*/
-/*    flex-wrap: wrap;*/
-/*    margin-right: -15px;*/
-/*    margin-left: -15px;*/
-/*    width: 100%;*/
-/*}*/
+/* Make sure Bootstrap grid works properly */
+.row {
+    display: flex;
+    flex-wrap: wrap;
+    margin-right: -15px;
+    margin-left: -15px;
+    width: 100%;
+}
 
-/*!* Fix for chart cards *!*/
-/*.chart-card {*/
-/*    width: 100%;*/
-/*    height: 100%;*/
-/*    margin-bottom: 1.5rem;*/
-/*}*/
+/* Fix for chart cards */
+.chart-card {
+    width: 100%;
+    height: 100%;
+    margin-bottom: 1.5rem;
+}
 
-/*@media (min-width: 768px) {*/
-/*    .col-md-3 {*/
-/*        flex: 0 0 25%;*/
-/*        max-width: 25%;*/
-/*    }*/
+@media (min-width: 768px) {
+    .col-md-3 {
+        flex: 0 0 25%;
+        max-width: 25%;
+    }
 
-/*    .col-md-4 {*/
-/*        flex: 0 0 33.333333%;*/
-/*        max-width: 33.333333%;*/
-/*    }*/
+    .col-md-4 {
+        flex: 0 0 33.333333%;
+        max-width: 33.333333%;
+    }
 
-/*    .col-md-6 {*/
-/*        flex: 0 0 50%;*/
-/*        max-width: 50%;*/
-/*    }*/
-/*}*/
+    .col-md-6 {
+        flex: 0 0 50%;
+        max-width: 50%;
+    }
+}

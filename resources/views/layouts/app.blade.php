@@ -14,7 +14,7 @@
     <link href="{{ secure_asset('css/app.css') }}" rel="stylesheet">
 
     <!-- Styles -->
-{{--    <link href="{{ secure_asset('css/app.css') }}" rel="stylesheet">--}}
+    {{--    <link href="{{ secure_asset('css/app.css') }}" rel="stylesheet">--}}
 
     <!-- Fonts -->
     <link rel="dns-prefetch" href="//fonts.gstatic.com">
@@ -27,49 +27,26 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/4.6.0/js/bootstrap.bundle.min.js"></script>
     <script src="{{ secure_asset('js/app.js') }}" defer></script>
-{{--    <script src="{{ secure_asset('js/custom.js') }}" defer></script>--}}
+    {{--    <script src="{{ secure_asset('js/custom.js') }}" defer></script>--}}
     <script src="{{ secure_asset('js/navigation.js') }}" defer></script>
     <script>
-        // Show loader on page load
+        // Simple loader that only handles page loads/navigations
         $(window).on('load', function() {
+            // Hide loader when page is fully loaded
             $('#global-loader').fadeOut(200);
         });
 
-        // Show loader before page unload (when navigating to a new page)
+        // Show loader when navigating to a new page
         $(window).on('beforeunload', function() {
             $('#global-loader').fadeIn(200);
         });
 
-        // // Show/hide loader during AJAX, but ignore select2 and autocomplete requests
-        // $(document).ajaxStart(function(event, xhr, settings) {
-        //     // Check if the AJAX request is not from select2 or autocomplete
-        //     if (!settings ||
-        //         (settings.url &&
-        //             !settings.url.includes('select2') &&
-        //             !settings.url.includes('select') &&
-        //             !settings.url.includes('autocomplete')
-        //         )
-        //     ) {
-        //         $('#global-loader').fadeIn(200);
-        //     }
-        // });
-        //
-        // $(document).ajaxStop(function(event, xhr, settings) {
-        //     // Check if the AJAX request is not from select2 or autocomplete
-        //     if (!settings ||
-        //         (settings.url &&
-        //             !settings.url.includes('select2') &&
-        //             !settings.url.includes('select') &&
-        //             !settings.url.includes('autocomplete')
-        //         )
-        //     ) {
-        //         $('#global-loader').fadeOut(200);
-        //     }
-        // });
-
-        // Show loader immediately when document is ready
+        // Document ready handler
         $(document).ready(function() {
-            $('#global-loader').fadeIn(200);
+            // Hide loader once DOM is ready (but before all resources might be loaded)
+            setTimeout(function() {
+                $('#global-loader').fadeOut(200);
+            }, 500);  // Small delay to ensure DOM is fully ready
 
             // Initialize submenus
             $('.has-submenu.open > ul').show();
@@ -82,6 +59,13 @@
                 $(this).parent().toggleClass('open');
             });
         });
+
+        // Emergency failsafe - if the loader is shown for more than 5 seconds, hide it
+        setInterval(function() {
+            if ($('#global-loader').is(':visible')) {
+                $('#global-loader').fadeOut(200);
+            }
+        }, 5000);
     </script>
     <style>
         /* Critical layout styles to ensure proper rendering */
@@ -107,6 +91,48 @@
                 margin-left: 0;
                 width: 100%;
             }
+        }
+
+        /* Loader styles */
+        #global-loader {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 9999;
+        }
+
+        .loader-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(255, 255, 255, 0.7);
+        }
+
+        .loader-content {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            margin: 0 auto 10px;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #3498db;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
         }
     </style>
 </head>

@@ -30,9 +30,15 @@
     {{--    <script src="{{ secure_asset('js/custom.js') }}" defer></script>--}}
     <script src="{{ secure_asset('js/navigation.js') }}" defer></script>
     <script>
+        // Improved loader handling
+        $(window).on('load', function() {
+            // Hide loader on full page load
+            hideLoader();
+        });
+
         $(document).ready(function() {
-            // Hide loader immediately when DOM is ready
-            $('#global-loader').fadeOut(200);
+            // Backup hide in case 'load' event doesn't fire properly
+            setTimeout(hideLoader, 1000);
 
             // Initialize submenus
             $('.has-submenu.open > ul').show();
@@ -47,17 +53,21 @@
 
             // Show loader when navigating to a new page
             $(window).on('beforeunload', function() {
-                $('#global-loader').fadeIn(200);
+                showLoader();
             });
         });
 
+        // Define helper functions for loader
+        function hideLoader() {
+            $('#global-loader').fadeOut(200);
+        }
+
+        function showLoader() {
+            $('#global-loader').fadeIn(200);
+        }
+
         // Emergency failsafe - if the loader is shown for more than 3 seconds, hide it
-        setTimeout(function() {
-            if ($('#global-loader').is(':visible')) {
-                console.log("Failsafe triggered: loader was visible too long");
-                $('#global-loader').fadeOut(200);
-            }
-        }, 3000);
+        setTimeout(hideLoader, 3000);
     </script>
     <style>
         /* Critical layout styles to ensure proper rendering */
@@ -156,5 +166,12 @@
         <p>Loading...</p>
     </div>
 </div>
+
+<!-- Ensure loader is hidden if JavaScript fails -->
+<noscript>
+    <style>
+        #global-loader { display: none !important; }
+    </style>
+</noscript>
 </body>
 </html>

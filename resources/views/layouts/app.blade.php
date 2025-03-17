@@ -30,23 +30,9 @@
     {{--    <script src="{{ secure_asset('js/custom.js') }}" defer></script>--}}
     <script src="{{ secure_asset('js/navigation.js') }}" defer></script>
     <script>
-        // Simple loader that only handles page loads/navigations
-        $(window).on('load', function() {
-            // Hide loader when page is fully loaded
-            $('#global-loader').fadeOut(200);
-        });
-
-        // Show loader when navigating to a new page
-        $(window).on('beforeunload', function() {
-            $('#global-loader').fadeIn(200);
-        });
-
-        // Document ready handler
         $(document).ready(function() {
-            // Hide loader once DOM is ready (but before all resources might be loaded)
-            setTimeout(function() {
-                $('#global-loader').fadeOut(200);
-            }, 500);  // Small delay to ensure DOM is fully ready
+            // Hide loader immediately when DOM is ready
+            $('#global-loader').fadeOut(200);
 
             // Initialize submenus
             $('.has-submenu.open > ul').show();
@@ -58,14 +44,20 @@
                 $submenu.slideToggle();
                 $(this).parent().toggleClass('open');
             });
+
+            // Show loader when navigating to a new page
+            $(window).on('beforeunload', function() {
+                $('#global-loader').fadeIn(200);
+            });
         });
 
-        // Emergency failsafe - if the loader is shown for more than 5 seconds, hide it
-        setInterval(function() {
+        // Emergency failsafe - if the loader is shown for more than 3 seconds, hide it
+        setTimeout(function() {
             if ($('#global-loader').is(':visible')) {
+                console.log("Failsafe triggered: loader was visible too long");
                 $('#global-loader').fadeOut(200);
             }
-        }, 5000);
+        }, 3000);
     </script>
     <style>
         /* Critical layout styles to ensure proper rendering */
@@ -101,6 +93,7 @@
             width: 100%;
             height: 100%;
             z-index: 9999;
+            display: block; /* Start visible and fade out when ready */
         }
 
         .loader-overlay {
@@ -155,7 +148,8 @@
     @endif
 </div>
 
-<div id="global-loader" style="display: none;">
+<!-- Loader starts visible in HTML but will be hidden by JavaScript -->
+<div id="global-loader">
     <div class="loader-overlay"></div>
     <div class="loader-content">
         <div class="spinner"></div>

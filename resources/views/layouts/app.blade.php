@@ -30,16 +30,7 @@
     {{--    <script src="{{ secure_asset('js/custom.js') }}" defer></script>--}}
     <script src="{{ secure_asset('js/navigation.js') }}" defer></script>
     <script>
-        // Improved loader handling
-        $(window).on('load', function() {
-            // Hide loader on full page load
-            hideLoader();
-        });
-
         $(document).ready(function() {
-            // Backup hide in case 'load' event doesn't fire properly
-            setTimeout(hideLoader, 1000);
-
             // Initialize submenus
             $('.has-submenu.open > ul').show();
 
@@ -50,24 +41,7 @@
                 $submenu.slideToggle();
                 $(this).parent().toggleClass('open');
             });
-
-            // Show loader when navigating to a new page
-            $(window).on('beforeunload', function() {
-                showLoader();
-            });
         });
-
-        // Define helper functions for loader
-        function hideLoader() {
-            $('#global-loader').fadeOut(200);
-        }
-
-        function showLoader() {
-            $('#global-loader').fadeIn(200);
-        }
-
-        // Emergency failsafe - if the loader is shown for more than 3 seconds, hide it
-        setTimeout(hideLoader, 3000);
     </script>
     <style>
         /* Critical layout styles to ensure proper rendering */
@@ -94,49 +68,6 @@
                 width: 100%;
             }
         }
-
-        /* Loader styles */
-        #global-loader {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: 9999;
-            display: block; /* Start visible and fade out when ready */
-        }
-
-        .loader-overlay {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(255, 255, 255, 0.7);
-        }
-
-        .loader-content {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            text-align: center;
-        }
-
-        .spinner {
-            width: 40px;
-            height: 40px;
-            margin: 0 auto 10px;
-            border: 4px solid #f3f3f3;
-            border-top: 4px solid #3498db;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-        }
-
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
     </style>
 </head>
 <body>
@@ -157,21 +88,5 @@
         </main>
     @endif
 </div>
-
-<!-- Loader starts visible in HTML but will be hidden by JavaScript -->
-<div id="global-loader">
-    <div class="loader-overlay"></div>
-    <div class="loader-content">
-        <div class="spinner"></div>
-        <p>Loading...</p>
-    </div>
-</div>
-
-<!-- Ensure loader is hidden if JavaScript fails -->
-<noscript>
-    <style>
-        #global-loader { display: none !important; }
-    </style>
-</noscript>
 </body>
 </html>
